@@ -178,7 +178,7 @@ let rec forever (x:??) : ?? =
 exception BadDivisors of int * int;;
 let bad_divisors n m = raise (BadDivisors (n,m));;
 
-let few_divisors n m = 
+let few_divisors (n:int) (m:int) : bool = 
   let divisible_by n d = n mod d = 0 in
   let add_if_divisible n d count = 
     if divisible_by n d then (count+1) 
@@ -314,6 +314,20 @@ Random.init 17;; (* Don't remove this line; Your code follows *)
 exception BadArg of int;;
 let bad_arg (n:int) = raise (BadArg n);;
 
+let rec monte_pi (n:int) : float = 
+  if (n<=0) then bad_arg n;
+  let dist (x,y) = (x*.x) +. (y*.y) in
+  let in_quarter_circle (x,y) = (dist (x,y)) <= 1. in 
+  let add_if_random_inside count = 
+    if (in_quarter_circle (Random.float 1., Random.float 1.)) then (count+1)
+    else count in
+  let rec monti_rec trials_left num_inside =
+    if trials_left <= 0 then (num_inside * 4)
+    else 
+    monti_rec (trials_left-1) (add_if_random_inside num_inside) in
+  ((float_of_int (monti_rec n 0)) /. (float_of_int n))
+;;
+
 (*************)
 (* Problem 7 *)
 (*************)
@@ -336,8 +350,17 @@ let bad_arg (n:int) = raise (BadArg n);;
 
 (* 7a:  Explain your algorithm and your sources here:
 
+I am choosing a continued fraction representation of pi to compute from this 
+image from the wikipedia article: 
+http://upload.wikimedia.org/math/0/2/7/027a69678d1c2d6fb4aa2cf4b0583891.png
 
-
+The fraction has a numerator of 4 and a denominator of 1 plus the next 
+term in the representation.  That next term is 1^2/(3 + [next term]).
+The pattern continues with the numerator of each term being the square 
+of the term number, and the denominator as (2 * [term number] - 1) plus
+the next term.  The series can end by setting the next term as zero
+and calculating the fraction.  This algorithm is recursive in nature
+and so will work well in ocaml.
 
 *)
 
@@ -352,3 +375,30 @@ let bad_arg (n:int) = raise (BadArg n);;
  *      Again, don't worry about "stack overflow" errors for large values
  *      of the input to custom_pi.
 *)
+
+(* the parameter n is the number of levels deep the continued fraction goes.*)
+let custom_pi (n:int) : float = 
+    if (n<=0) then bad_arg n;
+    let square_float n = (float_of_int n) *. (float_of_int n) in
+    let rec custom_pi_rec count total_n = 
+      if (count>total_n) then 0.
+      else 
+        ((float_of_int (2*count-1)) +. 
+          ((square_float count)/.(custom_pi_rec (count+1) total_n))) in
+    (4. /. (custom_pi_rec 1 n))
+;;
+
+(* testing function*)
+let custom_pi_test (n:int) : unit = 
+  print_string ((string_of_int n) ^ " levels deep gives: " 
+  ^ (string_of_float (custom_pi n)) ^ "\n")
+;;
+
+(* tests *)
+custom_pi_test 1;;
+custom_pi_test 10;;
+custom_pi_test 100;;
+custom_pi_test 1000;;
+custom_pi_test 100000;;
+print_string "Intentional Error: \n";;
+custom_pi_test (-2); (* test if the function breaks correctly *)
