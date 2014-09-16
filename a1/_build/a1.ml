@@ -91,8 +91,8 @@ let prob3a : bool =
 
 
 (*>* Problem 3b *>*)
-(* The n-1 and x+y expressions in line 100 must have parentheses or else the
-operators will be evaluated, not the results of the operators*)
+(* The n-1 and x+y expressions in line 101 must have parentheses or else the
+operators will be evaluated by aux, not the results of the operators*)
 
 let prob3b : int = 
   let fib n =
@@ -111,10 +111,10 @@ be used in defining sumTo *)
 
 let prob3c : int =
   let rec sumTo (n:int) : int =
-  if n <= 0 then 0
-else n + sumTo (n-1)
-in
-sumTo 10
+    if n <= 0 then 0
+    else n + sumTo (n-1)
+  in
+    sumTo 10
 ;;
 
 (*>* Problem 4 *>*)
@@ -358,7 +358,7 @@ The fraction has a numerator of 4 and a denominator of 1 plus the next
 term in the representation.  That next term is 1^2/(3 + [next term]).
 The pattern continues with the numerator of each term being the square 
 of the term number, and the denominator as (2 * [term number] - 1) plus
-the next term.  The series can end by setting the next term as zero
+the next term.  The series can end by setting the next term as 1
 and calculating the fraction.  This algorithm is recursive in nature
 and so will work well in ocaml.
 
@@ -381,7 +381,7 @@ let custom_pi (n:int) : float =
     if (n<=0) then bad_arg n;
     let square_float n = (float_of_int n) *. (float_of_int n) in
     let rec custom_pi_rec count total_n = 
-      if (count>total_n) then 0.
+      if (count>total_n) then 1.
       else 
         ((float_of_int (2*count-1)) +. 
           ((square_float count)/.(custom_pi_rec (count+1) total_n))) in
@@ -395,10 +395,11 @@ let custom_pi_test (n:int) : unit =
 ;;
 
 (* tests *)
+print_string "Custom Continued Fraction Pi function:\n";;
 custom_pi_test 1;;
 custom_pi_test 10;;
 custom_pi_test 100;;
 custom_pi_test 1000;;
 custom_pi_test 100000;;
-print_string "Intentional Error: ";;
+print_string "\nIntentional Error: \n";;
 custom_pi_test (-2); (* test if the function breaks correctly *)
