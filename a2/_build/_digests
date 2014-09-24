@@ -1,0 +1,5 @@
+"Rule: ocaml: ml -> d.cmo & cmi (%=warmup )": "\252/\140\252!\239 u\183Y\213\225S\252h\029"
+"Rule: ocaml: ml -> cmo & cmi (%=warmup )": "\145\192#E\127\2421\\\251\0025l>\bh\235"
+"Resource: /data/F14School/COS326/a2/warmup.ml": "J`\158\186\209\138z7e\029B\152]\001M\000"
+"Rule: ocaml: d.cmo* -> d.byte (%=warmup )": "\222=\138\225\030k)x\ra\006U'\127\000|"
+"Rule: ocaml dependencies ml (%=warmup )": "\160N\015B6VU\157\190\219\133\187\028\216i\225"
