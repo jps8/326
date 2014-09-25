@@ -1,10 +1,2 @@
 ### Starting build.
-# Target: reduce_exercies.ml.depends, tags: { extension:ml, file:reduce_exercies.ml, ocaml, ocamldep, quiet }
-/usr/bin/ocamldep -modules reduce_exercies.ml > reduce_exercies.ml.depends
-# Target: reduce_exercies.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:reduce_exercies.cmo, file:reduce_exercies.ml, implem, ocaml, quiet }
-/usr/bin/ocamlc -c -o reduce_exercies.cmo reduce_exercies.ml
-# Target: reduce_exercies.d.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:reduce_exercies.d.cmo, file:reduce_exercies.ml, implem, ocaml, quiet }
-/usr/bin/ocamlc -c -g -o reduce_exercies.d.cmo reduce_exercies.ml
-# Target: reduce_exercies.d.byte, tags: { byte, debug, dont_link_with, extension:byte, file:reduce_exercies.d.byte, link, ocaml, program, quiet }
-/usr/bin/ocamlc -g reduce_exercies.d.cmo -o reduce_exercies.d.byte
-# Compilation successful.
+# Compilation unsuccessful.

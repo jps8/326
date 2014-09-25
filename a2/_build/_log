@@ -1,10 +1,10 @@
 ### Starting build.
 # Target: warmup.ml.depends, tags: { extension:ml, file:warmup.ml, ocaml, ocamldep, quiet }
-/usr/bin/ocamldep -modules warmup.ml > warmup.ml.depends
+/usr/bin/ocamldep -modules warmup.ml > warmup.ml.depends # cached
 # Target: warmup.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:warmup.cmo, file:warmup.ml, implem, ocaml, quiet }
-/usr/bin/ocamlc -c -o warmup.cmo warmup.ml
+/usr/bin/ocamlc -c -o warmup.cmo warmup.ml # cached
 # Target: warmup.d.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:warmup.d.cmo, file:warmup.ml, implem, ocaml, quiet }
-/usr/bin/ocamlc -c -g -o warmup.d.cmo warmup.ml
+/usr/bin/ocamlc -c -g -o warmup.d.cmo warmup.ml # cached
 # Target: warmup.d.byte, tags: { byte, debug, dont_link_with, extension:byte, file:warmup.d.byte, link, ocaml, program, quiet }
-/usr/bin/ocamlc -g warmup.d.cmo -o warmup.d.byte
+/usr/bin/ocamlc -g warmup.d.cmo -o warmup.d.byte # cached
 # Compilation successful.

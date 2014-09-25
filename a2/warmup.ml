@@ -37,9 +37,9 @@ let prob1b : (string * int) list = [("COS", 326); ("COS", 441)] ;;
       must be a list of the expression to the left
 
     *)
-(*
+
 let prob1c : float list = 2.0 :: (3.0 :: [4.0; 5.0]) ;;
-*)
+
 
 (*************)
 (* PROBLEM 2 *)
@@ -234,12 +234,15 @@ let look_and_say (xs: int list) : int list =
   let rec print_list_elems elems =
     match elems with
     | [] -> ()
-    | hd::tl -> ((print_int hd); (print_string "; "); (print_list_elems tl))
+    | hd::tl -> 
+      match tl with
+      | [] -> ((print_int hd); (print_list_elems tl))
+      | _ -> ((print_int hd); (print_string "; "); (print_list_elems tl))
   in 
   (print_string "["; print_list_elems ls; print_string "]\n")
-;;
+;; *)
 
-print_list (look_and_say [1; 1]);; *)
+(* print_list (look_and_say [1; 1]);; *)
 
 (*************)
 (* PROBLEM 5 *)
@@ -256,7 +259,12 @@ let rec flatten (xss:'a list list) : 'a list =
   match xss with
   | [] -> []
   | hd::tl -> 
+    match hd with
+    | [] -> flatten tl
+    | sub_hd::sub_tl -> sub_hd::(flatten (sub_tl::tl))
 ;;
+
+(* print_list (flatten [[1;2;3]; []; [4]; [5;6]]);; *)
 
 (* 5b. Given a matrix (list of lists), return the transpose.
  * The transpose of a matrix interchanges the rows and columns.
@@ -271,7 +279,52 @@ let rec flatten (xss:'a list list) : 'a list =
 exception BadMatrix
 let badMatrix () = raise BadMatrix
 
-let rec transpose (m:int list list) : int list list = failwith "unimplemented";;
+let transpose (m:int list list) : int list list =
+  let rec length l = 
+    match l with 
+    | [] -> 0
+    | hd::tl -> (1 + (length tl))
+  in
+  let rec check_lengths_equal len mls =
+    match mls with 
+    | [] -> ()
+    | hd::tl -> (if (length hd <> len) then badMatrix ());
+    (check_lengths_equal len tl)
+  in
+  let rec nth_elem_in_each n ls = 
+    let rec nth_elem sub_n sub_ls =
+      match sub_ls with
+      | [] -> 0 (*unused*)
+      | hd::tl ->
+      if (sub_n=0) then hd
+      else (nth_elem (sub_n-1) tl)
+    in
+    match ls with 
+    | [] -> []
+    | hd::tl -> (nth_elem n hd)::(nth_elem_in_each n tl)
+  in
+  let rec transpose_rec ls n elem_len =
+    if (n = elem_len) then []
+    else (nth_elem_in_each n ls)::(transpose_rec ls (n+1) elem_len)
+  in
+  let m_elem_len = 
+    match m with
+    | [] -> 0
+    | hd::tl -> (length hd)
+  in
+  (check_lengths_equal m_elem_len m);
+  (transpose_rec m 0 m_elem_len)
+;;
+
+(*Testing for transpose*)
+(* let rec print_list_list ls =
+  match ls with
+  | [] -> ()
+  | hd::tl -> (print_list hd); print_list_list tl
+;; *)
+
+(* print_list_list (transpose [[1;2;3];[4;5;6]]);;
+print_list_list (transpose [[1;2;3];[4;5;6];[7;8;9]]);; *)
 
 
 (* 5c. Return the list of all permutations of the input list. eg: 
@@ -279,5 +332,50 @@ let rec transpose (m:int list list) : int list list = failwith "unimplemented";;
 *)
 (* test this on small inputs!! *)
 let perm (items:'a list) : 'a list list =
-  failwith "unimplemented"
+  let rec length l = 
+    match l with 
+    | [] -> 0
+    | hd::tl -> (1 + (length tl))
+  in
+  let rec map f ls =
+    match ls with 
+    | [] -> []
+    | hd::tl -> (f hd)::(map f tl)
+  in
+  let rec join_lists ls1 ls2 = 
+    match ls1 with
+    | [] -> ls2
+    | hd::tl -> hd::(join_lists tl ls2)
+  in
+  let rec extract ls index : ('a option) * ('a list) = 
+    match ls with
+    | [] -> (None, [])
+    | hd::tl -> 
+      if (index=0) then (Some hd, tl)
+    else 
+      let (item, remaining) = (extract tl (index-1)) in
+      (item, hd::remaining)
+  in
+  let rec perms (ls : 'a list) : 'a list list =
+    let rec perm_loop ls i =
+      (*extract *)
+      match (extract ls i) with
+      | (None, _) -> [[]] (*shouldn't happen unless items is []*)
+      | (Some item, []) -> [[item]]
+      | (Some item, remaining) ->
+        (*recur*)
+        let sub_perms = perms remaining in 
+        (*append item to all in sub_perms*)
+        let item_perms = (map (fun sub_perm -> item::sub_perm) sub_perms) in
+        (*loop, or end loop*)
+        if (i-1>=0) then
+        join_lists (perm_loop ls (i-1)) item_perms
+        else
+        item_perms
+    in
+    perm_loop ls ((length ls)-1)
+  in
+  (perms items)
 ;;
+
+(* print_list_list (perm []);; *)

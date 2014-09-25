@@ -53,11 +53,11 @@ let average (movies : movie list) : float =
 (* Note any years outside the range 1920-2019 will always be discarded *)
 (* but should not raise an error condition *)
 let rec decade (n:int) (ms:movie list) : movie list = 
-  if (n > 90 || n mod 10 <> 0) then bad_arg "n is not a decade\n";
+  if (n > 90 || n mod 10 <> 0) then bad_arg "n is not a decade";
   match ms with
   | [] -> []
   | (title,studio,gross,year)::tl -> 
-  if ((year mod 100) / 10 = n / 10) then (title,studio,gross,year)::(decade n tl)
+  if (year / 10 = n / 10) then (title,studio,gross,year)::(decade n tl)
   else (decade n tl)
 ;;
 
@@ -123,7 +123,7 @@ let sort_by_gross (movies : movie list) : movie list =
     (* (title,studio,gross,year) *)
     let (_,_,gross1,_) = mov1 in
     let (_,_,gross2,_) = mov2 in
-    (gross1 <= gross2)
+    (gross2 <= gross1)
   in
   selection_sort leq_gross movies
 ;;
@@ -134,7 +134,7 @@ let sort_by_year (movies : movie list) : movie list =
     (* (title,studio,gross,year) *)
     let (_,_,_,year1) = mov1 in
     let (_,_,_,year2) = mov2 in
-    (year1 <= year2)
+    (year2 <= year1)
   in
   selection_sort leq_year movies
 ;;
@@ -146,7 +146,7 @@ let sort_by_studio (studio_grosses : studio_gross list) : studio_gross list =
     (* (studio,gross) *)
     let (_,gross1) = studio_gross1 in
     let (_,gross2) = studio_gross2 in
-    (gross1 <= gross2)
+    (gross2 <= gross1)
   in
   selection_sort leq_gross studio_grosses
 ;;
@@ -154,23 +154,10 @@ let sort_by_studio (studio_grosses : studio_gross list) : studio_gross list =
 (* given list of movies,
  * return list of pairs (studio_name, total gross revenue for that studio)  *)
 let by_studio (movies:movie list) : studio_gross list =
-  let rec get_studio_gross name mov_ls =
-    match mov_ls with 
-    | [] -> (name, 0., [])
-    | (title,studio,gross,year)::tl -> 
-    if (studio = name) then 
-      let (_, partial_gross, remaining) = (get_studio_gross name tl) in
-      (name, partial_gross +. gross, remaining)
-    else
-      let (_, partial_gross, remaining) = (get_studio_gross name tl) in
-      (name, partial_gross, (title,studio,gross,year)::remaining)
-  in
   let rec movies_to_studios ls =
     match ls with 
     | [] -> []
-    | (title,studio,gross,year)::tl ->
-      let (name, total_gross, remaining) = get_studio_gross studio ls in
-      (studio, gross)::(movies_to_studios remaining)
+    | (title,studio,gross,year)::tl -> (studio, gross)::(movies_to_studios tl)
   in
   movies_to_studios movies
 ;;
