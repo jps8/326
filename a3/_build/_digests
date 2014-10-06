@@ -1,0 +1,5 @@
+"Rule: ocaml: d.cmo* -> d.byte (%=mapreduce )": "\245\2206\162bCj|M\138j\226\011;&\020"
+"Resource: /data/F14School/COS326/a3/mapreduce.ml": ")\185\147JJ\201\171WE%\194\020\140,\238\018"
+"Rule: ocaml dependencies ml (%=mapreduce )": "\015\005\203\211\t\184\2103\240\175\223O!\164\194\000"
+"Rule: ocaml: ml -> d.cmo & cmi (%=mapreduce )": "\196\210\001\177_\179\0263n\011\1913K\171T\241"
+"Rule: ocaml: ml -> cmo & cmi (%=mapreduce )": "\012<\157\235m|\235\004\227+qj\199\003)\235"

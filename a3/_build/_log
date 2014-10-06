@@ -1,0 +1,10 @@
+### Starting build.
+# Target: mapreduce.ml.depends, tags: { extension:ml, file:mapreduce.ml, ocaml, ocamldep, quiet }
+/usr/bin/ocamldep -modules mapreduce.ml > mapreduce.ml.depends
+# Target: mapreduce.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:mapreduce.cmo, file:mapreduce.ml, implem, ocaml, quiet }
+/usr/bin/ocamlc -c -o mapreduce.cmo mapreduce.ml
+# Target: mapreduce.d.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:mapreduce.d.cmo, file:mapreduce.ml, implem, ocaml, quiet }
+/usr/bin/ocamlc -c -g -o mapreduce.d.cmo mapreduce.ml
+# Target: mapreduce.d.byte, tags: { byte, debug, dont_link_with, extension:byte, file:mapreduce.d.byte, link, ocaml, program, quiet }
+/usr/bin/ocamlc -g mapreduce.d.cmo -o mapreduce.d.byte
+# Compilation successful.
