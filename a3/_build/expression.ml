@@ -35,7 +35,7 @@ let rec contains_var (e:expression) : bool =
 ;;
 
 assert (contains_var (parse "x^4"));;
-assert (not (contains_var (parse "4+3")));;
+assert ( (contains_var (parse "4+3")));;
 
 (*>* Problem 2.2 *>*)
 
