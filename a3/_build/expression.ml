@@ -35,7 +35,7 @@ let rec contains_var (e:expression) : bool =
 ;;
 
 assert (contains_var (parse "x^4"));;
-assert ( (contains_var (parse "4+3")));;
+assert (not (contains_var (parse "4+3")));;
 
 (*>* Problem 2.2 *>*)
 
@@ -43,15 +43,51 @@ assert ( (contains_var (parse "4+3")));;
  *            built in method of handling 'divide by zero' errors.
  *  Example : evaluate (parse "x^4 + 3") 2.0 = 19.0 *)
 let rec evaluate (e:expression) (x:float) : float =
-  failwith "Not implemented" ;;
+  match e with
+  | Num n -> n
+  | Var -> x
+  | Unop (u,e1) -> (
+    match u with
+    | Sin -> sin (evaluate e1 x)
+    | Cos -> cos (evaluate e1 x)
+    | Ln -> log (evaluate e1 x)
+    | Neg -> (-1.) *. (evaluate e1 x))
+  | Binop (b,e1,e2) -> (
+    match b with
+    | Add -> (evaluate e1 x) +. (evaluate e2 x)
+    | Sub -> (evaluate e1 x) -. (evaluate e2 x)
+    | Mul -> (evaluate e1 x) *. (evaluate e2 x)
+    | Div -> (evaluate e1 x) /. (evaluate e2 x)
+    | Pow -> (evaluate e1 x) ** (evaluate e2 x))
+;;
 
-
+assert ((evaluate (parse "x^4 + 3") 2.0) = 19.0);;
 
 (*>* Problem 2.3 *>*)
 
 (* See writeup for instructions.  *)
 let rec derivative (e:expression) : expression =
-  failwith "Not implemented"
+  match e with
+  | Num n -> 0
+  | Var -> 1
+  | Unop (u,e1) -> (
+    match u with
+    | Sin -> sin (derivative e1)
+    | Cos -> cos (derivative e1)
+    | Ln -> log (derivative e1)
+    | Neg -> (-1.) *. (derivative e1))
+  | Binop (b,e1,e2) -> (
+    match b with
+    | Add -> Binop(Add,(derivative e1),(derivative e2))
+    | Sub -> Binop(Sub,(derivative e1),(derivative e2))
+    | Mul -> Binop(Add, Binop(Mul,(derivative e1),e2), Binop(Mul,e1,(derivative e2)))
+    | Div -> Binop(Div, 
+      Binop(Sub, Binop(Mul,(derivative e1),e2), Binop(Mul,e1,(derivative e2))), 
+      Binop(Pow, e2, 2))
+    | Pow -> 
+      match e2 with
+      | Num n -> 
+      | _ ->
 ;;
 
 (* A helpful function for testing. See the writeup. *)
