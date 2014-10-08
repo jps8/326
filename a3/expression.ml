@@ -132,14 +132,14 @@ let rec find_zero (e:expression) (g:float) (epsilon:float) (lim:int)
   )
 ;;
 
-let test_find_zero = 
+(* let test_find_zero = 
   let eps = 0.1 in
   let test_zero = (find_zero (parse "x^2") 10. eps 100) in
   match test_zero with
   | None -> assert false
   | Some x ->
   assert ((x < eps) && (x > (-1.)*.eps))
-;;
+;; *)
 (* test_find_zero;; *)
 
 (*>* Problem 2.5 *>*)
@@ -208,19 +208,52 @@ let rec find_zero_exact (e:expression) : expression option =
     else Some (Unop(Neg, Binop(Div, b, a)))
 ;;
 
-let exact_test = 
+(* let exact_test = 
  match (find_zero_exact (parse "(x + 5) + (3*x + 3)")) with
   | Some value ->
   print_string ((to_string (value)) ^ "\n")
   | _ -> print_string "broke\n"
 ;;
-exact_test;;
+exact_test;; *)
 
 (*>* Problem 2.6 *>*)
 
 (* Only adds parentheses when needed to prevent ambiguity. *)
 (* See observations in the writeup. *)
 let to_string_smart (e:expression) : string =
-  failwith "Not implemented"
+  let needs_parens child_exp parent_b =
+    match child_exp with
+    | Num n -> false
+    | Var -> false
+    | Unop (u, e1) -> false
+    | Binop (b, e1, e2) ->
+      if ((binop_precedence b) < (binop_precedence parent_b)) then false
+      else if ((b = parent_b) && (binop_is_associative b)) then false
+      else true
+  in
+  let rec smart_string exp =
+    match exp with 
+    | Num n -> (string_of_float n)
+    | Var -> "x"
+    | Unop (u, e1) -> (unop_to_string u)^"("^(smart_string e1)^")"
+    | Binop (b, e1, e2) -> (
+      let e1_string = smart_string e1 in
+      let e2_string = smart_string e2 in
+      if (needs_parens e1 b) && (needs_parens e2 b)
+        then "("^e1_string^")"^(binop_to_string b)^"("^e2_string^")"
+      else if (needs_parens e1 b) 
+        then "("^e1_string^")"^(binop_to_string b)^e2_string
+      else if (needs_parens e2 b)
+        then e1_string^(binop_to_string b)^"("^e2_string^")"
+      else
+        e1_string^(binop_to_string b)^e2_string
+    )
+  in
+  (smart_string e)
 ;;
+
+print_string ((to_string (parse "(3-x)*5*x^3"))^"\n");;
+print_string ((to_string_smart (parse "(3-x)*5*x^3"))^"\n");;
+print_string ((to_string (parse "3+5+4-3-4+(~3)"))^"\n");;
+print_string ((to_string_smart (parse "3+5+4-3-4+(~3)"))^"\n");;
 
