@@ -1,8 +1,8 @@
 (* 
 
-Name:
-Email:
-Minutes Spent on Problem 2:
+Name: Chris Piller
+Email: cpiller@princeton.edu
+Minutes Spent on Problem 2: 240
 
 (You aren't in any way graded on the number of minutes spent; 
  we are just trying to calibrate for future versions of the class)
@@ -123,24 +123,19 @@ let checkexp strs xval=
 (* See writeup for instructions. *)
 let rec find_zero (e:expression) (g:float) (epsilon:float) (lim:int)
     : float option =
-  if (lim <= 0) then None else
-  let next_approx = g -. (evaluate (derivative e) g)/.(evaluate e g) in
+  if (lim <= 0) then None else (
+  let next_approx = g -. (evaluate e g)/.(evaluate (derivative e) g) in
   (
-    if ((evaluate e next_approx < epsilon) 
-      && (evaluate e next_approx > (-1.)*.epsilon)) then Some next_approx else
-    find_zero e next_approx epsilon (lim-1)
+    (* For testing: *)
+    (* print_float next_approx;
+    print_string ("\t"^(string_of_float (evaluate e next_approx)));
+    print_string "\n"; *)
+    if (((evaluate e next_approx) < epsilon) 
+      && ((evaluate e next_approx) > (-1.)*.epsilon)) then (print_string ("worked "^(string_of_float next_approx)^"\n"); Some next_approx) else
+    (find_zero e next_approx epsilon (lim-1))
   )
+)
 ;;
-
-(* let test_find_zero = 
-  let eps = 0.1 in
-  let test_zero = (find_zero (parse "x^2") 10. eps 100) in
-  match test_zero with
-  | None -> assert false
-  | Some x ->
-  assert ((x < eps) && (x > (-1.)*.eps))
-;; *)
-(* test_find_zero;; *)
 
 (*>* Problem 2.5 *>*)
 
@@ -252,8 +247,8 @@ let to_string_smart (e:expression) : string =
   (smart_string e)
 ;;
 
-print_string ((to_string (parse "(3-x)*5*x^3"))^"\n");;
+(* Testing *)
+(* print_string ((to_string (parse "(3-x)*5*x^3"))^"\n");;
 print_string ((to_string_smart (parse "(3-x)*5*x^3"))^"\n");;
 print_string ((to_string (parse "3+5+4-3-4+(~3)"))^"\n");;
-print_string ((to_string_smart (parse "3+5+4-3-4+(~3)"))^"\n");;
-
+print_string ((to_string_smart (parse "3+5+4-3-4+(~3)"))^"\n");;*)
