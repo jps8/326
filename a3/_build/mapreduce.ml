@@ -3,7 +3,7 @@
 Name: Chris Piller
 Email: cpiller@princeton.edu
 Minutes Spent on Problem 1.1: 30
-Minutes Spent on Problem 1.2:
+Minutes Spent on Problem 1.2: 150
 
 (You aren't in any way graded on the number of minutes spent; 
  we are just trying to calibrate for future versions of the class)
