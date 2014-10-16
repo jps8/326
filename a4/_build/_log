@@ -1,0 +1,10 @@
+### Starting build.
+# Target: Syntax.ml.depends, tags: { extension:ml, file:Syntax.ml, ocaml, ocamldep, quiet }
+/usr/bin/ocamldep -modules Syntax.ml > Syntax.ml.depends
+# Target: Syntax.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:Syntax.cmo, file:Syntax.ml, implem, ocaml, quiet }
+/usr/bin/ocamlc -c -o Syntax.cmo Syntax.ml
+# Target: Syntax.d.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:Syntax.d.cmo, file:Syntax.ml, implem, ocaml, quiet }
+/usr/bin/ocamlc -c -g -o Syntax.d.cmo Syntax.ml
+# Target: Syntax.d.byte, tags: { byte, debug, dont_link_with, extension:byte, file:Syntax.d.byte, link, ocaml, program, quiet }
+/usr/bin/ocamlc -g Syntax.d.cmo -o Syntax.d.byte
+# Compilation successful.

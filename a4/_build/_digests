@@ -1,0 +1,5 @@
+"Rule: ocaml dependencies ml (%=Syntax )": "\025\237\198\014\004`k\140\152\233\137\201\130\177\206\154"
+"Rule: ocaml: ml -> cmo & cmi (%=Syntax )": "{N\136R\173\189U\"\138g1\254rK\194\250"
+"Rule: ocaml: d.cmo* -> d.byte (%=Syntax )": "\022\254/\216\227\019\133\210\213J\r\227\192\163\209]"
+"Rule: ocaml: ml -> d.cmo & cmi (%=Syntax )": "S\243\245D\152\029R\129\185#\023\190i\031\230\022"
+"Resource: /data/F14School/COS326/a4/Syntax.ml": "\128R\185\213\144KL\226;d\016\2409\198\178^"

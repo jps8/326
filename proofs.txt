@@ -1,0 +1,19 @@
+2.1: Theorem: cadd a (cadd b c) == cadd (cadd a b) c
+
+    cadd a (cadd b c)                left side of equation
+==  cadd a (let (x1,y1) = b in 
+            let (x2,y2) = c in
+            (x1+x2,y1+y2))           unrolling cadd function
+==  cadd a (b1+c1,b2+c2)             simplifying cadd
+== (let (x1,y1) = a in
+    let (x2,y2) = (b1+c1,b2+c2) in
+    (x1+x2,y1+y2))                   unrolling outer cadd function
+== (a1+b1+c1,a2+b2+c2)               simplifying outer cadd
+== cadd (a1+b1,a2+b2) (c1,c2)        regrouping cadd, skipping unrolling step
+== cadd (a1+b1,a2+b2) c              substituting c for (c1,c2)
+== cadd (cadd (a1,a2) (b1,b2)) c     re-packaging (a1+b1,a2+b2) into cadd
+== cadd (cadd a b) c                 substituting a and b
+QED
+
+
+2.2: Theorem: 
