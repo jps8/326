@@ -58,8 +58,8 @@ Therefore max (maxs xs) (maxs ys) == maxs (append xs ys) whenever xs == []
 
 case xs == hd::tail:
 
-IH: For all integer lists tl for which max 
-	(maxs tl) (maxs ys) == (maxs (append tl ys)), 
+IH: For all integer lists tl for which 
+	max (maxs tl) (maxs ys) == (maxs (append tl ys)), 
 	max	(maxs xs) (maxs ys) == (maxs (append xs ys))
 	holds for all xs of the form hd::tl.
 
@@ -67,7 +67,22 @@ To show: max (maxs xs) (maxs ys) == (maxs (append xs ys)) for all xs.
 
 Proof:
 
+Lemma 1:
+	max	(maxs xs) (maxs ys)				left side of the equation
+== 	max (maxs hd::tl) (maxs ys)			xs is not [], replace with hd:tl form
+==  max (max hd (maxs tl)) (maxs ys)	use maxs match statement to substitute
+==  max hd (max (maxs tl) (maxs ys))	associativity of max
 
+Lemma 2:
+	maxs (append xs ys)					right side of the equation
+==	maxs (append hd::tl ys)				xs is not [], replace with hd:tl form
+==  maxs (hd::append tl ys)				match statement of append
+== 	max hd (maxs (append tl ys))		match statement of maxs
+
+Therefore, anytime max (maxs tl) (maxs ys) == maxs (append tl ys),
+max (maxs hd:tl) (maxs ys) == (maxs (append hd:tl ys)) by transitivity
+of equality.  Because this is true when tl == [] as proven above, 
+all xs must allow the theorem to be true.
 
 QED!
 
@@ -119,6 +134,7 @@ standard template for list proofs.
 
 (b) For all l1 : 'a list, l2 : 'b list, unzip(zip (l1,l2)) == (l1,l2).
 
+Counterexample:
 If l1 = [1;2;3;4;5] and l2 = [6;7;8;9] then 
 zip (l1,l2) = [(1,6); (2,7); (3,8); (4,9)]
 and unzip (zip (l1,l2)) = ([1;2;3;4], [6;7;8;9]), which does
