@@ -26,6 +26,7 @@ Proof:
 == cadd (a1+b1,a2+b2) c              substituting c for (c1,c2)
 == cadd (cadd (a1,a2) (b1,b2)) c     re-packaging (a1+b1,a2+b2) into cadd
 == cadd (cadd a b) c                 substituting a and b
+
 QED
 
 
@@ -149,7 +150,7 @@ Lemma 1:
 ==  (fun x->x+1) hd :: 	
     map (fun x->x+1) tl					evaluate match
 ==  (hd+1)::map (fun x->x+1) tl			evaluate function for hd
-==  (hd+1)::bump1 tl 					substitute bump1 tl for expansion
+==  (hd+1) :: bump1 tl 					substitute bump1 tl for expansion
 
 Lemma 2:
 	bump3 l 							right hand side
@@ -181,10 +182,67 @@ standard template for list proofs.
 
 (a) For all l : ('a * 'b) list, zip(unzip l) == l.
 
+Proof by induction on the list l: 
+
+case l == []:
+
+	zip(unzip l)					left side of the equation
+== 	zip (
+	match l with
+      [] -> ([],[])
+    | (x,y)::tl -> 
+      let (xs,ys) = unzip tl in
+      (x::xs, y::ys))				substitute into unzip
+==  zip ([],[])						evaluate match
+==  let (xs,ys) = ([],[]) in
+	match (xs,ys) with
+      ([],_) -> []
+    | (_,[]) -> []
+    | (x::xrest, y::yrest) -> 
+    (x,y)::zip (xrest,yrest)		substitute into zip
+==  match ([],[]) with
+      ([],_) -> []
+    | (_,[]) -> []
+    | (x::xrest, y::yrest) -> 
+    (x,y)::zip (xrest,yrest)		substitue let statement into match
+==  []								evaluate match statement
+==  l 								substitue back for l
+
+For l == [], zip(unzip l) == l.
 
 
+case l == hd::tl:
 
+IHT: For all tl such that zip (unzip tl) == tl, all l of the form
+	hd::tl (which is (x,y)::tl) will make zip (unzip l) == l true. 
 
+	zip(unzip l)					left side of the equation
+== 	zip (
+	match l with
+      [] -> ([],[])
+    | (x,y)::tl -> 
+      let (xs,ys) = unzip tl in
+      (x::xs, y::ys))				substitute into unzip
+==  zip (
+	  let (xs,ys) = unzip tl in
+      (x::xs, y::ys))				evaluate match
+==  let (xs,ys) = (
+	let (xs,ys) = unzip tl in
+    (x::xs, y::ys)) in
+	match (xs,ys) with
+      ([],_) -> []
+    | (_,[]) -> []
+    | (x::xrest, y::yrest) -> 
+    (x,y)::zip (xrest,yrest)		substitute into zip
+==  let (xrest,yrest) = unzip tl in
+	(x,y)::zip (xrest,yrest)		evaluate match and substitute
+==	(x,y)::zip (unzip tl)			substitute more
+==  hd::zip (unzip tl)				substitute hd for (x,y)
+
+Therefore, zip (unzip hd::tl) == hd::tl anytime zip (unzip tl) == tl.
+By the IHT, zip (unzip l) == l for all lists of integer pairs, l.
+
+QED
 
 
 (b) For all l1 : 'a list, l2 : 'b list, unzip(zip (l1,l2)) == (l1,l2).
