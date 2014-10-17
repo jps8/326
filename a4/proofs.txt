@@ -1,10 +1,8 @@
-NAME:
-LOGIN:
+NAME: Chris Piller
+LOGIN: cpiller
 
 Part 2, Assignment #4, COS 326
 ------------------------------
-
-
 
 Part 2.1:
 --------
@@ -15,10 +13,20 @@ cadd a (cadd b c) == cadd (cadd a b) c
 
 Proof:
 
-
-
-
-
+    cadd a (cadd b c)                left side of equation
+==  cadd a (let (x1,y1) = b in
+            let (x2,y2) = c in
+            (x1+x2,y1+y2))           unrolling cadd function
+==  cadd a (b1+c1,b2+c2)             simplifying cadd
+== (let (x1,y1) = a in
+    let (x2,y2) = (b1+c1,b2+c2) in
+    (x1+x2,y1+y2))                   unrolling outer cadd function
+== (a1+b1+c1,a2+b2+c2)               simplifying outer cadd
+== cadd (a1+b1,a2+b2) (c1,c2)        regrouping cadd, skipping unrolling step
+== cadd (a1+b1,a2+b2) c              substituting c for (c1,c2)
+== cadd (cadd (a1,a2) (b1,b2)) c     re-packaging (a1+b1,a2+b2) into cadd
+== cadd (cadd a b) c                 substituting a and b
+QED
 
 
 Part 2.2: 
@@ -33,20 +41,29 @@ Proof:  By induction on the structure of the list xs.
 
 case xs == []:
 
-To show:
+To show:  max (maxs []) (maxs ys) == (maxs (append [] ys))
 
 Proof:
 
+	max (maxs []) (maxs ys)			xs = [] is given
+==  max (min_int) (maxs ys)			using the maxs function to substitue
+==  max (maxs ys) (min_int) 		commutativity of the max function
+== 	if (maxs ys) >= min_int
+	then (maxs ys) else min_int		substituting into the max function
+==	maxs ys							any integer will be >=min_int by definition
+== 	maxs (append [] ys)				match function of append [] ys gives ys
 
-
-
+Therefore max (maxs xs) (maxs ys) == maxs (append xs ys) whenever xs == [] 
 
 
 case xs == hd::tail:
 
-IH:   
+IH: For all integer lists tl for which max 
+	(maxs tl) (maxs ys) == (maxs (append tl ys)), 
+	max	(maxs xs) (maxs ys) == (maxs (append xs ys))
+	holds for all xs of the form hd::tl.
 
-To show:   
+To show: max (maxs xs) (maxs ys) == (maxs (append xs ys)) for all xs.
 
 Proof:
 
@@ -101,3 +118,10 @@ standard template for list proofs.
 
 
 (b) For all l1 : 'a list, l2 : 'b list, unzip(zip (l1,l2)) == (l1,l2).
+
+If l1 = [1;2;3;4;5] and l2 = [6;7;8;9] then 
+zip (l1,l2) = [(1,6); (2,7); (3,8); (4,9)]
+and unzip (zip (l1,l2)) = ([1;2;3;4], [6;7;8;9]), which does
+not equal (l1,l2).
+
+This theorem is false.

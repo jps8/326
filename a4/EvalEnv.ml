@@ -9,7 +9,7 @@ open EvalUtil
 (* Defines the subset of expressions considered values
    Notice that closures are values but the rec form is not -- this is
    slightly different from the way values are defined in the 
-   substitution-based interpreter.  Rhetorical question:  Why is that?
+   eval_loopitution-based interpreter.  Rhetorical question:  Why is that?
    Notice also that Cons(v1,v2) is a value (if v1 and v2 are both values).
 *) 
 let rec is_value (e:exp) : bool = 
@@ -28,8 +28,22 @@ let eval_body (env:env) (eval_loop:env -> exp -> exp) (e:exp) : exp =
       (match lookup_env env x with 
   	   | None -> raise (UnboundVariable x)
 	     | Some v -> v)
-    | 
-    | _ -> e
+    | Constant _ -> e
+    | Op (e1,op,e2) -> Op(eval_loop env e1,op,eval_loop env e2)
+    | If (e1,e2,e3) -> If(eval_loop env e1,eval_loop env e2,eval_loop env e3)
+    | Let (y,e1,e2) -> 
+        Let (y, eval_loop env e1, if x = y then e2 else eval_loop env e2)
+    | Pair (e1,e2) -> Pair(eval_loop env e1, eval_loop env e2)
+    | Fst e1 -> Fst (eval_loop env e1)
+    | Snd e1 -> Snd (eval_loop env e1)
+    | EmptyList -> EmptyList
+    | Cons (e1,e2) -> Cons (eval_loop env e1, eval_loop env e2)
+    | Match (e1,e2,hd,tl,e3) -> 
+      Match (eval_loop env e1, eval_loop env e2, hd, tl,
+             if x = hd || x = tl then e3 else eval_loop env e3)
+    | Rec (f,y,e1) -> if x = f || x = y then e else Rec (f, y, eval_loop env e1)
+    | App (e1,e2) -> App(eval_loop env e1,eval_loop env e2)
+    | Closure _ -> raise (NoClosures e) 
 
 (* evaluate closed, top-level expression e *)
 

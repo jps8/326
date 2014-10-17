@@ -16,4 +16,12 @@
 QED
 
 
-2.2: Theorem: 
+2.2: Theorem: max (maxs xs) (maxs ys) == (maxs (append xs ys))
+
+
+
+2.3: Theorem:
+
+
+2.4: Theorem: 
+  
