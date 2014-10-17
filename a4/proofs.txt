@@ -82,7 +82,8 @@ Lemma 2:
 Therefore, anytime max (maxs tl) (maxs ys) == maxs (append tl ys),
 max (maxs hd:tl) (maxs ys) == (maxs (append hd:tl ys)) by transitivity
 of equality.  Because this is true when tl == [] as proven above, 
-all xs must allow the theorem to be true.
+all xs must allow the theorem to be true, because all xs are either []
+or a hd appended to a tl for which the theorem is tru.
 
 QED!
 
@@ -91,29 +92,83 @@ Part 2.3:
 
 (a) Prove that for all integer lists l, bump1 l == bump2 l.
 
-Proof: 
+Proof:
 
+	bump1 l 							left side of the equation
+==	map (fun x -> x+1) l 				substitute l into bump1
+==  match l with
+    [] -> []
+    | hd::tail -> 
+    (fun x -> x+1) hd :: 
+    (map (fun x -> x+1) tail)			unroll map
+== 	match l with
+	[] -> []
+    | hd::tail -> 
+    (hd+1):: 
+    (map (fun x -> x+1) tail)			evaluate function for x=hd
+== 	bump2 l								repackage bump2
 
+Therefore, for all integer lists l bump1 l == bump2. 
 
-
-
-
+QED
 
 (b) Prove that for all integer lists l, bump1 l == bump3 l.
 
-Proof:
+Proof by induction on the list l: 
+
+case l == []:
+
+	bump1 []							left hand side
+==  map (fun x->x+1) []					substitute into bump1
+==  match [] with
+      [] -> []
+    | hd::tail -> 
+    (fun x->x+1) hd :: 
+    map (fun x->x+1) tail				substitute into map
+==  match [] with
+    [] -> []
+  	| hd::tail -> (hd+1) :: bump3 tail  change to bump3 version
+==  bump3 []
+
+Therefore when l == [], bump1 l == bump3 l
 
 
+case l == hd::tl:
 
+IHT: If l is of the form hd::tl, bump1 l == bump3 l whenever 
+	bump1 tl == bump3 tl.
 
+Lemma 1:
+	bump1 l 							left hand side
+==  map (fun x->x+1) l  				substitute into bump1
+==	match l with
+      [] -> []
+    | hd::tl -> 
+    (fun x->x+1) hd :: 
+    map (fun x->x+1) tl					substitute into map
+==  (fun x->x+1) hd :: 	
+    map (fun x->x+1) tl					evaluate match
+==  (hd+1)::map (fun x->x+1) tl			evaluate function for hd
+==  (hd+1)::bump1 tl 					substitute bump1 tl for expansion
 
+Lemma 2:
+	bump3 l 							right hand side
+==  match l with
+      [] -> []
+    | hd::tl -> (hd+1) :: bump3 tl      substitute into bump3
+==  (hd+1) :: bump3 tl 					evaluate match
 
+By transitivity of equality, bump1 l == bump3 l whenever bump1 tl == bump3 tl.
+This fulfills the IHT and because bump1 l == bump3 l when l == [], this 
+theorem is true for all integer lists l.
+
+QED
 
 
 (c) In one sentence, what's the big difference between parts (a) and (b)?
 
-
-
+Both bump1 and bump2 use map, but bump3 does not so (a) does not require
+induction to prove while (b) does.
 
 
 Part 2.4:
