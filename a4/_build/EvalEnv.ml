@@ -21,7 +21,7 @@ let rec is_value (e:exp) : bool =
     | Closure _ -> true
     | _ -> false
 
-(* evaluation; use eval_loop to recursively evaluate subexpressions *)
+(*(* evaluation; use eval_loop to recursively evaluate subexpressions *)
 let eval_body (env:env) (eval_loop:env -> exp -> exp) (e:exp) : exp = 
   match e with
     | Var x -> 
@@ -31,8 +31,8 @@ let eval_body (env:env) (eval_loop:env -> exp -> exp) (e:exp) : exp =
     | Constant _ -> e
     | Op (e1,op,e2) -> Op(eval_loop env e1,op,eval_loop env e2)
     | If (e1,e2,e3) -> If(eval_loop env e1,eval_loop env e2,eval_loop env e3)
-    | Let (y,e1,e2) ->
-        Let (y, eval_loop env e1, eval_loop (update_env env y e1) e2)
+    | Let (y,e1,e2) -> (* TODO: add to env *)(*)
+        Let (y, eval_loop env e1, if x = y then e2 else eval_loop env e2)
     | Pair (e1,e2) -> Pair(eval_loop env e1, eval_loop env e2)
     | Fst e1 -> Fst (eval_loop env e1)
     | Snd e1 -> Snd (eval_loop env e1)
