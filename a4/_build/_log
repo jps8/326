@@ -1,10 +1,38 @@
 ### Starting build.
+# Target: Main.ml.depends, tags: { extension:ml, file:Main.ml, ocaml, ocamldep, quiet }
+/usr/bin/ocamldep -modules Main.ml > Main.ml.depends # cached
+# Target: EvalEnv.mli.depends, tags: { extension:mli, file:EvalEnv.mli, ocaml, ocamldep, quiet }
+/usr/bin/ocamldep -modules EvalEnv.mli > EvalEnv.mli.depends # cached
 # Target: Syntax.ml.depends, tags: { extension:ml, file:Syntax.ml, ocaml, ocamldep, quiet }
-/usr/bin/ocamldep -modules Syntax.ml > Syntax.ml.depends
+/usr/bin/ocamldep -modules Syntax.ml > Syntax.ml.depends # cached
 # Target: Syntax.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:Syntax.cmo, file:Syntax.ml, implem, ocaml, quiet }
-/usr/bin/ocamlc -c -o Syntax.cmo Syntax.ml
-# Target: Syntax.d.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:Syntax.d.cmo, file:Syntax.ml, implem, ocaml, quiet }
-/usr/bin/ocamlc -c -g -o Syntax.d.cmo Syntax.ml
-# Target: Syntax.d.byte, tags: { byte, debug, dont_link_with, extension:byte, file:Syntax.d.byte, link, ocaml, program, quiet }
-/usr/bin/ocamlc -g Syntax.d.cmo -o Syntax.d.byte
-# Compilation successful.
+/usr/bin/ocamlc -c -o Syntax.cmo Syntax.ml # cached
+# Target: EvalEnv.cmi, tags: { byte, compile, extension:mli, file:EvalEnv.mli, interf, ocaml, quiet }
+/usr/bin/ocamlc -c -o EvalEnv.cmi EvalEnv.mli # cached
+# Target: Testing.ml.depends, tags: { extension:ml, file:Testing.ml, ocaml, ocamldep, quiet }
+/usr/bin/ocamldep -modules Testing.ml > Testing.ml.depends # cached
+# Target: Printing.mli.depends, tags: { extension:mli, file:Printing.mli, ocaml, ocamldep, quiet }
+/usr/bin/ocamldep -modules Printing.mli > Printing.mli.depends # cached
+# Target: Printing.cmi, tags: { byte, compile, extension:mli, file:Printing.mli, interf, ocaml, quiet }
+/usr/bin/ocamlc -c -o Printing.cmi Printing.mli # cached
+# Target: Testing.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:Testing.cmo, file:Testing.ml, implem, ocaml, quiet }
+/usr/bin/ocamlc -c -o Testing.cmo Testing.ml # cached
+# Target: Main.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:Main.cmo, file:Main.ml, implem, ocaml, quiet }
+/usr/bin/ocamlc -c -o Main.cmo Main.ml # cached
+# Target: Main.d.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:Main.d.cmo, file:Main.ml, implem, ocaml, quiet }
+/usr/bin/ocamlc -c -g -o Main.d.cmo Main.ml # cached
+# Target: EvalEnv.ml.depends, tags: { extension:ml, file:EvalEnv.ml, ocaml, ocamldep, quiet }
+/usr/bin/ocamldep -modules EvalEnv.ml > EvalEnv.ml.depends
+# Target: EvalUtil.mli.depends, tags: { extension:mli, file:EvalUtil.mli, ocaml, ocamldep, quiet }
+/usr/bin/ocamldep -modules EvalUtil.mli > EvalUtil.mli.depends # cached
+# Target: EvalUtil.cmi, tags: { byte, compile, extension:mli, file:EvalUtil.mli, interf, ocaml, quiet }
+/usr/bin/ocamlc -c -o EvalUtil.cmi EvalUtil.mli # cached
+# Target: Testing.d.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:Testing.d.cmo, file:Testing.ml, implem, ocaml, quiet }
+/usr/bin/ocamlc -c -g -o Testing.d.cmo Testing.ml # cached
+# Target: EvalEnv.d.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:EvalEnv.d.cmo, file:EvalEnv.ml, implem, ocaml, quiet }
+/usr/bin/ocamlc -c -g -o EvalEnv.d.cmo EvalEnv.ml
++ /usr/bin/ocamlc -c -g -o EvalEnv.d.cmo EvalEnv.ml
+File "EvalEnv.ml", line 75, characters 43-45:
+Error: Unbound value e1
+Command exited with code 2.
+# Compilation unsuccessful.

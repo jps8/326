@@ -87,7 +87,7 @@ let update_env (env:env) (x:variable) (v:exp) : env =
   if (updated) then new_env else (x,v)::env
 ;;
 
-let string_of_const c = 
+(* let string_of_const c = 
   match c with 
     | Int i -> string_of_int i
     | Bool b -> string_of_bool b
@@ -190,4 +190,4 @@ let test_update =
 )
 ;;
 
-test_update;;
+test_update;; *)
