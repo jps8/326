@@ -133,7 +133,10 @@ let incr_all = App(map, incr)
   sum_pairs [(1,2); (3,4)] == [3; 7]
  *)
 
+(* I'm doing something dumb here and so it doesn't work, but I'm out of time. :\ *)
 let sum_pairs = App(map, Rec("sum_pair", "pair", Op(Fst(Var "pair"), Plus, Snd(Var "pair"))))
+
+let pairs_test = Cons(Pair(one,two),Cons(Pair(three,four),EmptyList))
 
 (*********)
 (* TESTS *)

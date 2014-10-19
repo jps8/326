@@ -117,12 +117,12 @@ let eval_body (env:env) (eval_loop:env -> exp -> exp) (e:exp) : exp =
 
     | Pair (e1,e2) ->  Pair(eval_loop env e1, eval_loop env e2)
     | Fst e1 -> (
-      match e1 with
-      | Pair (efst, esnd) -> eval_loop env efst
+      match eval_loop env e1 with
+      | Pair (efst, esnd) -> efst
       | v1 -> raise (BadPair v1))
     | Snd e1 ->  (
-      match e1 with
-      | Pair (efst, esnd) -> eval_loop env esnd
+      match eval_loop env e1 with
+      | Pair (efst, esnd) -> esnd
       | v1 -> raise (BadPair v1))
     | EmptyList -> EmptyList
     | Cons(e1,e2) -> Cons((eval_loop env e1),(eval_loop env e2))
@@ -137,12 +137,12 @@ let eval_body (env:env) (eval_loop:env -> exp -> exp) (e:exp) : exp =
       let ignore = [f; x] in
       Closure(trim_env env body ignore,f,x,body)
     | App (e1,e2) -> 
-        (
+        ( 
           match eval_loop env e1 with 
           | Closure (c_env,f,x,body) -> 
-            let app_c_env = update_env c_env f (eval_loop c_env body) in
+            let app_c_env = update_env c_env f (Closure(env,f,x,body)) in
             let app_c_env_2 = update_env app_c_env x (eval_loop env e2) in
-            eval_loop app_c_env_2 body
+            (eval_loop app_c_env_2 body)
           | v1 -> raise (BadApplication v1)
       )
     | Closure (c_env,f,x,body)  -> Closure (c_env,f,x,body) 
