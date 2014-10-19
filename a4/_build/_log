@@ -31,8 +31,16 @@
 /usr/bin/ocamlc -c -g -o Testing.d.cmo Testing.ml # cached
 # Target: EvalEnv.d.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:EvalEnv.d.cmo, file:EvalEnv.ml, implem, ocaml, quiet }
 /usr/bin/ocamlc -c -g -o EvalEnv.d.cmo EvalEnv.ml
-+ /usr/bin/ocamlc -c -g -o EvalEnv.d.cmo EvalEnv.ml
-File "EvalEnv.ml", line 75, characters 43-45:
-Error: Unbound value e1
-Command exited with code 2.
-# Compilation unsuccessful.
+# Target: EvalUtil.ml.depends, tags: { extension:ml, file:EvalUtil.ml, ocaml, ocamldep, quiet }
+/usr/bin/ocamldep -modules EvalUtil.ml > EvalUtil.ml.depends # cached
+# Target: EvalUtil.d.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:EvalUtil.d.cmo, file:EvalUtil.ml, implem, ocaml, quiet }
+/usr/bin/ocamlc -c -g -o EvalUtil.d.cmo EvalUtil.ml # cached
+# Target: Printing.ml.depends, tags: { extension:ml, file:Printing.ml, ocaml, ocamldep, quiet }
+/usr/bin/ocamldep -modules Printing.ml > Printing.ml.depends # cached
+# Target: Printing.d.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:Printing.d.cmo, file:Printing.ml, implem, ocaml, quiet }
+/usr/bin/ocamlc -c -g -o Printing.d.cmo Printing.ml # cached
+# Target: Syntax.d.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:Syntax.d.cmo, file:Syntax.ml, implem, ocaml, quiet }
+/usr/bin/ocamlc -c -g -o Syntax.d.cmo Syntax.ml # cached
+# Target: Main.d.byte, tags: { byte, debug, dont_link_with, extension:byte, file:Main.d.byte, link, ocaml, program, quiet }
+/usr/bin/ocamlc -g Syntax.d.cmo EvalUtil.d.cmo Printing.d.cmo EvalEnv.d.cmo Testing.d.cmo Main.d.cmo -o Main.d.byte
+# Compilation successful.

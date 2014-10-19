@@ -68,15 +68,15 @@ let trim_env (env:env) (top_e:exp) (ignore_ls:variable list) : env =
         (join_lists 
           (free_vars bound_env free e1) 
           (free_vars bound_env free e2))
-        (free_vars bound_env free e3)
+        (free_vars new_bound_env free e3)
     | Rec (f,x,body) -> 
       let new_bound_env_f = (update_env bound_env f EmptyList) in
       let new_bound_env = (update_env new_bound_env_f x EmptyList) in
-      join_lists (free_vars bound_env free e1) (free_vars bound_env free e2)
+      (free_vars new_bound_env free body)
     | App (e1,e2) -> 
       (join_lists 
         (free_vars bound_env free e1) 
-        (free_vars new_bound_env free e2))
+        (free_vars bound_env free e2))
     | Closure (c_env,f,x,body) -> 
       let new_bound_env_f = (update_env bound_env f EmptyList) in
       let new_bound_env = (update_env new_bound_env_f x EmptyList) in
@@ -145,7 +145,7 @@ let eval_body (env:env) (eval_loop:env -> exp -> exp) (e:exp) : exp =
             eval_loop app_c_env_2 body
           | v1 -> raise (BadApplication v1)
       )
-    | Closure (c_env,f,x,body)  -> Closure (c_env body,f,x,body) 
+    | Closure (c_env,f,x,body)  -> Closure (c_env,f,x,body) 
 
 (* evaluate closed, top-level expression e *)
 
