@@ -1,0 +1,29 @@
+Coding is tricky, don't lose a ton of money on bugs.
+
+Lessons:
+    Favor readers over writers
+        readable code is simple, probably correct, and easy to change
+    Create uniform interfaces
+        use signatures to constrain implementations in a uniform way across modules
+    Make illegal states unrepresentable
+        include invariants in data type design, don't allow fields if they aren't in that state
+    Code for exhaustion
+        take advantage of ML's type checking system and exhaustion checking
+    Make common errors obvious
+        use error types, and use things like fold where errors don't happen
+    Prefer explicit to terse
+        show where references come from, only use short variable names in small sections
+    Avoid boilerplate
+        repeating code in ocaml is bad, D.R.Y. (Don't Repeat Yourself)
+    Types first
+        in ocaml, types define structure
+    Don't be puritanical about purity
+        it's not worth it to completely avoid side effects, side effects are good too
+    Avoid complex type hackery
+        you can write a full regex match into a type. don't
+
+Opam is great for ocaml packages
+
+Github stuff from janestreet:
+    core
+    async
