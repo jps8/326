@@ -38,9 +38,9 @@
 # Target: crawl.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:crawl.cmo, file:crawl.ml, implem, ocaml, quiet }
 /usr/bin/ocamlc -c -o crawl.cmo crawl.ml
 # Target: moogle.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:moogle.cmo, file:moogle.ml, implem, ocaml, quiet }
-/usr/bin/ocamlc -c -o moogle.cmo moogle.ml # cached
+/usr/bin/ocamlc -c -o moogle.cmo moogle.ml
 # Target: moogle.d.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:moogle.d.cmo, file:moogle.ml, implem, ocaml, quiet }
-/usr/bin/ocamlc -c -g -o moogle.d.cmo moogle.ml # cached
+/usr/bin/ocamlc -c -g -o moogle.d.cmo moogle.ml
 # Target: pagerank.d.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:pagerank.d.cmo, file:pagerank.ml, implem, ocaml, quiet }
 /usr/bin/ocamlc -c -g -o pagerank.d.cmo pagerank.ml # cached
 # Target: util.d.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:util.d.cmo, file:util.ml, implem, ocaml, quiet }
