@@ -274,7 +274,7 @@ end
 (* BTDict: a functor that implements our DICT signature           *)
 (* using a balanced tree (2-3 trees)                              *)
 (******************************************************************)
-(*
+
 module BTDict(D:DICT_ARG) : (DICT with type key = D.key
 with type value = D.value) =
 struct
@@ -612,17 +612,34 @@ struct
       | Hole(_,d') -> d'
       | Absorbed(_,d') -> d'
 
-  (* TODO:
-   * Write a lookup function that returns the value of the given key
+  (* Write a lookup function that returns the value of the given key
    * in our dictionary and returns it as an option, or return None
    * if the key is not in our dictionary. *)
   let rec lookup (d: dict) (k: key) : value option =
-    raise TODO
+    match d with 
+    | Leaf -> None
+    | Two (left, (key, value), right) -> (
+      match D.compare k key with
+      | Eq -> Some value
+      | Less -> lookup left k
+      | Greater -> lookup right k )
+    | Three (left, (l_key, l_value), middle, (r_key, r_value), right) -> (
+      match D.compare k l_key with
+      | Eq -> Some l_value
+      | Less -> lookup left k
+      | Greater -> (
+        match D.compare k r_key with
+        | Eq -> Some r_value
+        | Less -> lookup middle k
+        | Greater -> lookup right k
+      )
+    )
 
-  (* TODO:
-   * Write a function to test if a given key is in our dictionary *)
+  (* Test if a given key is in our dictionary *)
   let member (d: dict) (k: key) : bool =
-    raise TODO
+    match lookup d key with
+    | None -> false
+    | Some value -> true
 
   (* TODO:
    * Write a function that removes any (key,value) pair from our 
@@ -783,7 +800,7 @@ struct
     ()
 
 end
-*)
+
 
 
 
