@@ -274,7 +274,7 @@ end
 (* BTDict: a functor that implements our DICT signature           *)
 (* using a balanced tree (2-3 trees)                              *)
 (******************************************************************)
-(*
+
 module BTDict(D:DICT_ARG) : (DICT with type key = D.key
 with type value = D.value) =
 struct
@@ -612,17 +612,34 @@ struct
       | Hole(_,d') -> d'
       | Absorbed(_,d') -> d'
 
-  (* TODO:
-   * Write a lookup function that returns the value of the given key
+  (* Write a lookup function that returns the value of the given key
    * in our dictionary and returns it as an option, or return None
    * if the key is not in our dictionary. *)
   let rec lookup (d: dict) (k: key) : value option =
-    raise TODO
+    match d with 
+    | Leaf -> None
+    | Two (left, (key, value), right) -> (
+      match D.compare k key with
+      | Eq -> Some value
+      | Less -> lookup left k
+      | Greater -> lookup right k )
+    | Three (left, (l_key, l_value), middle, (r_key, r_value), right) -> (
+      match D.compare k l_key with
+      | Eq -> Some l_value
+      | Less -> lookup left k
+      | Greater -> (
+        match D.compare k r_key with
+        | Eq -> Some r_value
+        | Less -> lookup middle k
+        | Greater -> lookup right k
+      )
+    )
 
-  (* TODO:
-   * Write a function to test if a given key is in our dictionary *)
+  (* Test if a given key is in our dictionary *)
   let member (d: dict) (k: key) : bool =
-    raise TODO
+    match lookup d key with
+    | None -> false
+    | Some value -> true
 
   (* TODO:
    * Write a function that removes any (key,value) pair from our 
@@ -632,18 +649,41 @@ struct
   let choose (d: dict) : (key * value * dict) option =
     raise TODO
 
-  (* TODO:
-   * Write a function that when given a 2-3 tree (represented by our
+  (* A function that when given a 2-3 tree (represented by our
    * dictionary d), returns true if and only if the tree is "balanced", 
    * where balanced means that the given tree satisfies the 2-3 tree
    * invariants stated above and in the 2-3 tree handout. *)
 
   (* How are you testing that you tree is balanced? 
    * ANSWER: 
-   *    _______________
+   *    Every node must have all leaves underneath it or all balanced nodes.
    *)
   let rec balanced (d: dict) : bool =
-    raise TODO
+    match dict with
+    | Leaf -> true
+    | Two (left, pair, right) -> (
+      match (balanced left, balanced right) with
+      | (true, true) -> (
+        match (left, right) with
+        | (Leaf, Leaf) -> true
+        | (Leaf, _) -> false
+        | (_, Leaf) -> false
+        | _ -> true
+      )
+      | _ -> false
+    )
+    | Three (left, pair1, middle, pair2, right) -> (
+      match (balanced left, balanced middle, balanced right) with
+      | (true, true, true) -> (
+        match (left, right, middle) with
+        | (Leaf, Leaf, Leaf) -> true
+        | (Leaf, _, _) -> false
+        | (_, Leaf, _) -> false
+        | (_, _, Leaf) -> false
+        | _ -> true
+      )
+      | _ -> false
+    )
 
 
   (********************************************************************)
@@ -783,7 +823,7 @@ struct
     ()
 
 end
-*)
+
 
 
 

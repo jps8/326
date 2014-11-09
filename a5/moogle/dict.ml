@@ -353,13 +353,18 @@ struct
   (* TODO:
    * Implement fold. Read the specification in the DICT signature above. *)
   let rec fold (f: key -> value -> 'a -> 'a) (u: 'a) (d: dict) : 'a =
-    raise TODO
+    match choose d with
+    | None -> u
+    | Some (key, value, rest) -> f key value (fold f u rest)
 
   (* TODO:
    * Implement these to-string functions *)
-  let string_of_key = raise TODO
-  let string_of_value = raise TODO
-  let string_of_dict (d: dict) : string = raise TODO
+  let string_of_key = D.string_of_key
+  let string_of_value = D.string_of_value
+  let string_of_dict (d: dict) : string = 
+    let f = (fun k v y -> "key: " ^ D.string_of_key k ^ 
+      "; value: (" ^ D.string_of_value v ^ ")\n"^y) in
+    fold f "" d
       
   (* Debugging function. This will print out the tree in text format.
    * Use this function to see the actual structure of your 2-3 tree. *
@@ -647,20 +652,46 @@ struct
    * as an option this (key,value) pair along with the new dictionary. 
    * If our dictionary is empty, this should return None. *)
   let choose (d: dict) : (key * value * dict) option =
-    raise TODO
+    match remove_min d with
+    | Hole (None, rest) -> None
+    | Hole (Some (key, value), rest) -> Some (key, value, rest)
+    | Absorbed ((key, value), rest) -> Some (key, value, rest)
 
-  (* TODO:
-   * Write a function that when given a 2-3 tree (represented by our
+  (* A function that when given a 2-3 tree (represented by our
    * dictionary d), returns true if and only if the tree is "balanced", 
    * where balanced means that the given tree satisfies the 2-3 tree
    * invariants stated above and in the 2-3 tree handout. *)
 
   (* How are you testing that you tree is balanced? 
    * ANSWER: 
-   *    _______________
+   *    Every node must have all leaves underneath it or all balanced nodes.
    *)
   let rec balanced (d: dict) : bool =
-    raise TODO
+    match dict with
+    | Leaf -> true
+    | Two (left, pair, right) -> (
+      match (balanced left, balanced right) with
+      | (true, true) -> (
+        match (left, right) with
+        | (Leaf, Leaf) -> true
+        | (Leaf, _) -> false
+        | (_, Leaf) -> false
+        | _ -> true
+      )
+      | _ -> false
+    )
+    | Three (left, pair1, middle, pair2, right) -> (
+      match (balanced left, balanced middle, balanced right) with
+      | (true, true, true) -> (
+        match (left, right, middle) with
+        | (Leaf, Leaf, Leaf) -> true
+        | (Leaf, _, _) -> false
+        | (_, Leaf, _) -> false
+        | (_, _, Leaf) -> false
+        | _ -> true
+      )
+      | _ -> false
+    )
 
 
   (********************************************************************)
