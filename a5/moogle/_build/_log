@@ -14,19 +14,7 @@
 # Target: dict.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:dict.cmo, file:dict.ml, implem, ocaml, quiet }
 /usr/bin/ocamlc -c -o dict.cmo dict.ml
 + /usr/bin/ocamlc -c -o dict.cmo dict.ml
-File "dict.ml", line 382, characters 32-33:
-Warning 20: this argument will not be used by the function.
-File "dict.ml", line 382, characters 60-61:
-Warning 20: this argument will not be used by the function.
-File "dict.ml", line 386, characters 32-34:
-Warning 20: this argument will not be used by the function.
-File "dict.ml", line 386, characters 61-63:
-Warning 20: this argument will not be used by the function.
-File "dict.ml", line 387, characters 58-60:
-Warning 20: this argument will not be used by the function.
-File "dict.ml", line 388, characters 27-29:
-Warning 20: this argument will not be used by the function.
-File "dict.ml", line 640, characters 19-22:
-Error: Unbound value key
+File "dict.ml", line 355, characters 10-18:
+Error: Unbound value D.choose
 Command exited with code 2.
 # Compilation unsuccessful.
