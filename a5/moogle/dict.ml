@@ -350,15 +350,13 @@ struct
   (* How do we represent an empty dictionary with 2-3 trees? *)
   let empty : dict = Leaf
 
-  (* TODO:
-   * Implement fold. Read the specification in the DICT signature above. *)
+  (* Implement fold. Read the specification in the DICT signature above. *)
   let rec fold (f: key -> value -> 'a -> 'a) (u: 'a) (d: dict) : 'a =
     match choose d with
     | None -> u
     | Some (key, value, rest) -> f key value (fold f u rest)
 
-  (* TODO:
-   * Implement these to-string functions *)
+  (* Implement these to-string functions *)
   let string_of_key = D.string_of_key
   let string_of_value = D.string_of_value
   let string_of_dict (d: dict) : string = 
@@ -392,6 +390,11 @@ struct
         ^ (string_of_tree middle) ^ ",(" ^ (string_of_key k2) ^ "," 
         ^ (string_of_value v2) ^ ")," ^ (string_of_tree right) ^ ")"
 
+  (* if the downward insertion does not find equality, but the 
+   * upwards part does (implementation error), the upwards insertion 
+   * cannot handle it and so must fail. *)
+  exception DownwardEqualityFailed of string
+
   (* Upward phase for w where its parent is a Two node whose (key,value) is x.
    * One of x's children is w, and the other child is x_other. This function
    * should return a kicked-up configuration containing the new tree as a
@@ -401,7 +404,7 @@ struct
     let (w_key, w_val) = w in
     let (x_key, x_val) = x in
     match D.compare w_key x_key with
-    | Eq -> (*overwrite*)
+    | Eq -> raise DownwardEqualityFailed "insert_upward_two found equality"
     | Less -> Done(Three(w_left, w, w_right, x, x_other))
     | Greater -> Done(Three(x_other, x, w_left, w, w_right))
 
@@ -422,7 +425,12 @@ struct
     let (w_key, w_val) = w in
     let (x_key, x_val) = x in
     let (y_key, y_val) = y in
-    match 
+    match D.compare w_key x_key, D.compare w_key y_key with
+    | Eq, _ -> raise DownwardEqualityFailed "insert_upward_three found equality"
+    | _, Eq -> raise DownwardEqualityFailed "insert_upward_three found equality"
+    | Less, _ -> Up(Two(w_left, w, w_right), x, Two(other_left, y, other_right))
+    | Greater, Less -> Up(Two(other_left, x, w_left), w, Two(w_right, y, other_right))
+    | _, Greater -> Up(Two(other_left, x, other_right), y, Two(w_left, w, w_right))
 
   (* Downward phase for inserting (k,v) into our dictionary d. 
    * The downward phase returns a "kicked" up configuration, where
@@ -458,23 +466,75 @@ struct
    * with the appropriate arguments. *)
   let rec insert_downward (d: dict) (k: key) (v: value) : kicked =
     match d with
-      | Leaf -> raise TODO (* base case! see handout *)
-      | Two(left,n,right) -> raise TODO (* mutual recursion *)
-      | Three(left,n1,middle,n2,right) -> raise TODO (* mutual recursion *)
+    (* Leaf case shouldn't happen often because of terminal node case below*)
+      | Leaf -> Up(Leaf, (k,v), Leaf) 
+      | Two(left,n,right) -> 
+        (* mutual recursion *)
+        insert_downward_two (k,v) n left right
+      | Three(left,n1,middle,n2,right) -> 
+        (* mutual recursion *)
+        insert_downward_three (k,v) n1 n2 left middle right
 
   (* Downward phase on a Two node. (k,v) is the (key,value) we are inserting,
    * (k1,v1) is the (key,value) of the current Two node, and left and right
    * are the two subtrees of the current Two node. *)
   and insert_downward_two ((k,v): pair) ((k1,v1): pair) 
       (left: dict) (right: dict) : kicked = 
-    raise TODO
+    if left = Leaf && right = Leaf then (
+      match D.compare k k1 with
+      | Eq -> Done(Two(left, (k1, v), right))
+      | Less -> Done(Three(Leaf, (k, v), Leaf, (k1, v1), Leaf))
+      | Greater -> Done(Three(Leaf, (k1, v1), Leaf, (k, v), Leaf))
+    ) else
+    match D.compare k k1 with
+    | Eq -> Done(Two(left, (k1,v), right))
+    | Less -> (
+      match insert_downward left k v with
+      | Done d -> Done(Two(d, (k1,v1), right))
+      | Up(l,w,r) ->
+        insert_upward_two w l r (k1,v1) right 
+    )
+    | Greater -> insert_downward right k v(
+      match insert_downward right k v with
+      | Done d -> Done(Two(left, (k1,v1), d))
+      | Up(l,w,r) ->
+        insert_upward_two w l r (k1,v1) left 
+    )
 
   (* Downward phase on a Three node. (k,v) is the (key,value) we are inserting,
    * (k1,v1) and (k2,v2) are the two (key,value) pairs in our Three node, and
    * left, middle, and right are the three subtrees of our current Three node *)
   and insert_downward_three ((k,v): pair) ((k1,v1): pair) ((k2,v2): pair) 
       (left: dict) (middle: dict) (right: dict) : kicked =
-    raise TODO
+    if left = Leaf && middle = Leaf && right = Leaf then (
+      match D.compare k k1, D.compare k k2 with
+      | Eq, _ -> Done(Three(left, (k1, v), middle, (k2, v2), right))
+      | _, Eq -> Done(Three(left, (k1, v1), middle, (k2, v), right))
+      | Less, _ -> Up(Two(Leaf, (k,v), Leaf), (k1,v1), Two(Leaf, (k2,v2), Leaf))
+      | Greater, Less -> Up(Two(Leaf, (k1,v1), Leaf), (k,v), Two(Leaf, (k2,v2), Leaf))
+      | _, Greater -> Up(Two(Leaf, (k1,v1), Leaf), (k2,v2), Two(Leaf, (k,v), Leaf))
+    ) else
+    match D.compare k k1, D.compare k k2 with
+    | Eq, _ -> Done(Three(left, (k1, v), middle, (k2, v2), right))
+    | _, Eq -> Done(Three(left, (k1, v1), middle, (k2, v), right))
+    | Less, _ -> (
+      match insert_downward left k v with
+      | Done d -> Done(Three(d, (k1,v1), middle, (k2,v2), right))
+      | Up(l,w,r) -> 
+        insert_upward_three w l r (k1,v1) (k2,v2) middle right
+    )
+    | Greater, Less -> (
+      match insert_downward middle k v with
+      | Done d -> Done(Three(left, (k1,v1), d, (k2,v2), right))
+      | Up(l,w,r) -> 
+        insert_upward_three w l r (k1,v1) (k2,v2) left right
+    )
+    | _, Greater -> (
+      match insert_downward right k v with
+      | Done d -> Done(Three(left, (k1,v1), middle, (k2,v2), d))
+      | Up(l,w,r) -> 
+        insert_upward_three w l r (k1,v1) (k2,v2) left middle
+    )
 
   (* We insert (k,v) into our dict using insert_downward, which gives us
    * "kicked" up configuration. We return the tree contained in the "kicked"
