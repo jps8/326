@@ -398,7 +398,12 @@ struct
    * result of performing the upward phase on w. *)
   let insert_upward_two (w: pair) (w_left: dict) (w_right: dict) 
       (x: pair) (x_other: dict) : kicked = 
-    raise TODO
+    let (w_key, w_val) = w in
+    let (x_key, x_val) = x in
+    match D.compare w_key x_key with
+    | Eq -> (*overwrite*)
+    | Less -> Done(Three(w_left, w, w_right, x, x_other))
+    | Greater -> Done(Three(x_other, x, w_left, w, w_right))
 
   (* Upward phase for w where its parent is a Three node whose (key,value) is x.
    * One of x's children is w, and of the two remaining children, 
@@ -414,7 +419,10 @@ struct
    * new tree as a result of performing the upward phase on w. *)
   let insert_upward_three (w: pair) (w_left: dict) (w_right: dict)
       (x: pair) (y: pair) (other_left: dict) (other_right: dict) : kicked =
-    raise TODO
+    let (w_key, w_val) = w in
+    let (x_key, x_val) = x in
+    let (y_key, y_val) = y in
+    match 
 
   (* Downward phase for inserting (k,v) into our dictionary d. 
    * The downward phase returns a "kicked" up configuration, where
