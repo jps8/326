@@ -899,6 +899,72 @@ struct
     assert(balanced r5) ;
     ()
 
+  let test_insert_into_nothing () =
+    let d1 = empty in
+    let (k,v) = (D.gen_key(), D.gen_value()) in
+    let r1 = insert d1 k v in
+    assert(r1 = Two(Leaf, (k,v), Leaf)) ;
+    assert(balanced r1) ;
+    ()
+
+  let test_insert_in_order () =
+    let pairs1 = generate_pair_list 26 in
+    let d1 = empty in
+    List.iter 
+      (fun (k,v) -> 
+        let r = insert d1 k v in
+        let _ = List.iter 
+          (fun (k2,v2) ->
+            if k = k2 then assert(lookup r k2 = Some v2)
+            else assert(lookup r k2 = None)
+          ) pairs1 in
+        assert(balanced r)
+      ) pairs1 ;
+    ()
+
+  let test_double_insert () =
+    let d1 = empty in
+    let key = D.gen_key() in
+    let v1 = D.gen_value() in
+    let v2 = D.gen_value() in
+    let d2 = insert d1 key v1 in
+    assert(balanced d2);
+    let d3 = insert d1 key v2 in
+    assert(lookup d3 key = Some v2);
+    assert(balanced d3);
+    ()
+
+  let test_lookup () =
+    let d1 = empty in
+    let (k,v) = (D.gen_key(), D.gen_value()) in
+    assert(lookup d1 k = None);
+    let d2 = insert d1 k v in
+    assert(balanced d2);
+    assert(lookup d2 k = Some v);
+    ()
+
+  let test_member () =
+    let d1 = empty in
+    let (k,v) = (D.gen_key(), D.gen_value()) in
+    assert(not (member d1 k));
+    let d2 = insert d1 k v in
+    assert(balanced d2);
+    assert(member d2 k);
+    ()
+
+  let test_choose () =
+    let d1 = empty in
+    assert(choose d1 = None);
+    let (k,v) = (D.gen_key(), D.gen_value()) in
+    let d2 = insert d1 k v in
+    assert(balanced d2);
+    assert(choose d2 = Some (k,v,Leaf));
+    let (k1,v1) = (D.gen_key(), D.gen_value()) in
+    let d3 = insert d2 k1 v1 in
+    assert(balanced d3);
+    assert(not (choose d3 = None));
+    ()
+
   let run_tests () = 
    test_balance() ;
    test_remove_nothing() ;
@@ -906,6 +972,12 @@ struct
     test_remove_in_order() ;
     test_remove_reverse_order() ;
     test_remove_random_order() ;
+    test_insert_into_nothing() ;
+    test_insert_in_order() ;
+    test_double_insert() ;
+    test_lookup() ;
+    test_member() ;
+    test_choose() ;
     ()
 
 end
@@ -942,6 +1014,6 @@ module Make (D:DICT_ARG) : (DICT with type key = D.key
   with type value = D.value) = 
   (* Change this line to the BTDict implementation when you are
    * done implementing your 2-3 trees. *)
-  AssocListDict(D)
-  (* BTDict(D) *)
+  (* AssocListDict(D) *)
+  BTDict(D)
 

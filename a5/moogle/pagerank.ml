@@ -3,6 +3,7 @@ open CrawlerServices ;;
 open Order ;;
 open Nodescore ;;
 open Graph ;;
+open Random ;;
 
 
 (* Dictionaries mapping links to their ranks. Higher is better. *)
@@ -118,7 +119,6 @@ end
 (*****************************************************************)
 (* Random Walk Ranker                                            *)
 (*****************************************************************)
-(*
 
 module type WALK_PARAMS =
 sig
@@ -130,6 +130,8 @@ sig
   val num_steps : int
 end
 
+exception BadImplementation of string
+
 module RandomWalkRanker (GA: GRAPH) (NSA: NODE_SCORE with module N = GA.N) 
   (P : WALK_PARAMS) : 
   (RANKER with module G = GA with module NS = NSA) =
@@ -137,9 +139,57 @@ struct
   module G = GA
   module NS = NSA
 
-  (* TODO - fill this in*)
+  let rank (g: G.graph) = 
+    let randomListElem ls = 
+      let rec len l = 
+        match l with
+        | [] -> 0
+        | hd::tl -> 1+(len tl)
+      in
+      let rec nth_elem n l =
+        match l with
+        | [] -> raise (BadImplementation "random function unbounded")
+        | hd::tl -> (
+          if n = 0 then hd else nth_elem (n-1) tl
+        )
+      in
+      nth_elem (Random.int (len ls)) ls
+    in
+    let should_jump = 
+      match P.do_random_jumps with
+      | None -> true
+      | Some p -> ((Random.float 1.0) < p)
+    in
+    let rec randomWalk ns node stepsRemaining =
+      if stepsRemaining=0 then ns else (
+        if should_jump then (
+          match G.get_random_node g with 
+          | None -> raise (BadImplementation "randomWalk called on empty graph")
+          | Some startingNode ->
+          randomWalk (NS.add_score ns node 1.0) startingNode (stepsRemaining-1)
+        ) else
+        match G.outgoing_edges g node with
+        | None | Some [] -> (
+          match G.get_random_node g with
+          | None -> raise (BadImplementation "randomWalk called on empty graph")
+          | Some startingNode ->
+          randomWalk (NS.add_score ns node 1.0) startingNode (stepsRemaining-1)
+        )
+        | Some edgeList -> (
+          let (_,neighbor)  = randomListElem edgeList in
+          randomWalk (NS.add_score ns node 1.0) neighbor (stepsRemaining-1)
+        )
+      )
+    in
+    let nodes = G.nodes g in
+    match G.get_random_node g with
+    | None -> NS.zero_node_score_map nodes
+    | Some startingNode ->
+    NS.normalize (
+      randomWalk (NS.zero_node_score_map nodes) startingNode P.num_steps
+    )
 end
-*)
+
 
 
 (*******************  TESTS BELOW  *******************)
@@ -173,7 +223,7 @@ struct
 
 end
 
-(*
+
 module TestRandomWalkRanker =
 struct 
   module G = NamedGraph
@@ -204,6 +254,6 @@ struct
 
 (* That's the problem with randomness -- hard to test *)
 end
-*)
+
 
 
