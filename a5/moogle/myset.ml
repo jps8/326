@@ -315,10 +315,191 @@ struct
   (* write tests. However, you must write a lot more              *)
   (* comprehensive tests to test ALL your functions.              *)
   (****************************************************************)
+  let testSize = 1000
+
+  (****************************************************************)
+  (* helper functions for tests *)
+
+  (* adds a list of elts (lst) to a set d *)
+  let insert_list (d: set) (lst: elt list) : set = 
+    List.fold_left (fun r k -> insert k r) d lst
+
+  (* generates a random list of size elts calling upon the passed 
+   * in comparable 
+   *)
+  let rec generate_random_list (size: int) : elt list =
+    if size <= 0 then []
+    else (C.gen_random ()) :: (generate_random_list (size - 1))
+
+  (* returns true if list xs contains x, false if it doesn't *)
+  let rec list_contains xs x = 
+    match xs with 
+      | [] -> false
+      | y::ys -> (if x == y then true
+                  else (list_contains ys x))
+
+  (* removes extra items that occur in ls more than once *)
+  let list_removeDuplicates ls =
+    let rec removeDup inList outList = 
+      match inList with
+        [] -> outList
+      | hd::tl -> (if list_contains outList hd 
+                   then removeDup tl outList
+                   else removeDup tl (hd::outList))
+    in
+    removeDup ls []
+
+  (* returns the intersection of two lists *)
+  let list_intersect l1 l2 =
+    let rec intersector xs ys lsInt = 
+       match xs with
+        [] -> lsInt
+      | hd::tl -> (if (list_contains ys hd) 
+                    then (intersector tl ys (hd::lsInt))
+                    else (intersector tl ys lsInt))
+    in
+    intersector (list_removeDuplicates l1) l2 []
+
+
+  (* returns the complement of list a in list b, that is the list 
+   * of all values in list a which are not in list b
+   *)
+  let rec list_complement (a:'a list) (b:'a list) : 'a list = 
+    match a with
+      hd::tl -> (if (list_contains b hd) then 
+                  list_complement tl b
+                else hd::(list_complement tl b))
+    | [] -> []
+
+  (* returns the symmetric difference of lists a and b *)
+  let rec list_symDif (a:'a list)(b:'a list) : 'a list = 
+    List.append (list_complement a b) (list_complement b a)
+
+(****************************************************************)
+(* the actual tests *)
+
+  let test_insert () = 
+    let ourList = generate_random_list testSize in
+    let ourSet = insert_list empty ourList in
+    List.iter (fun k -> assert(member ourSet k)) ourList ;
+    ()
+
+  let test_remove () = 
+    let elts = generate_random_list testSize in
+    let s1 = insert_list empty elts in
+    let s2 = List.fold_right (fun k r -> remove k r) elts s1 in
+    List.iter (fun k -> assert(not (member s2 k))) elts ;
+    ()
+
+  let test_union () = 
+    let l1 = generate_random_list testSize in
+    let l2 = generate_random_list testSize in
+    let l3 = List.append l1 l2 in
+    let s3 = union (insert_list empty l1) (insert_list empty l2) in 
+    List.iter (fun k -> assert (member s3 k)) l3;
+    ()
+
+
+  let test_intersect () = 
+    (* generate 2 elt lists and sets *)
+    let l1 = generate_random_list testSize in
+    let l2 =  generate_random_list testSize in
+    let s1 = insert_list empty l1 in
+    let s2 = insert_list empty l2 in
+
+    let s_inter = intersect s1 s2 in 
+    let l_inter = list_intersect l1 l2 in
+    let l_symdif = list_symDif l1 l2 in
+
+    List.iter (fun k -> assert (member s_inter k)) l_inter;
+    List.iter (fun k -> assert (not (member s_inter k))) l_symdif; 
+    ()
+
+  let test_member () = 
+    let l1 = generate_random_list testSize in
+    let l2 =  generate_random_list testSize in
+    let l_intersect = list_intersect l1 l2 in
+    let l_symdif = list_symDif l1 l2 in
+
+    let ourSet = insert_list empty l_intersect in
+    List.iter (fun k -> assert(member ourSet k)) l_intersect ;
+    List.iter (fun k -> assert (not (member ourSet k))) l_symdif;
+    ()
+
+
+  let test_choose () = 
+    let l1 = generate_random_list testSize in
+    let s1 = insert_list empty l1 in
+    let pair1 = choose s1 in
+    let elt1 = match pair1 with
+                  Some (elta, seta) -> elta
+                | None -> C.gen_random ()
+    in
+    let newSet = match pair1 with
+                    Some (elta, seta) -> seta
+                  | None -> empty
+    in
+    let rec remove_chosen (lsIn:'a list) (lsOut:'a list) : 'a list = 
+      match lsIn with 
+        [] -> lsOut
+      | hd::tl -> (if hd == elt1 then remove_chosen tl lsOut
+                    else remove_chosen tl (hd::lsOut))
+    in
+    let newList = remove_chosen l1 [] in
+    assert (member s1 elt1);
+    List.iter (fun k -> assert (member newSet k)) newList;
+    assert (not (member newSet elt1));
+    ()
+
+  let test_fold () = 
+    let l1 =  generate_random_list testSize in
+    let l2 = list_removeDuplicates l1 in
+    let funcToFold counter b = counter+1 in
+    let altFtF b counter =  counter+1 in
+    let listOut = List.fold_left funcToFold 0 l2 in
+    let s1 =  insert_list empty l2 in
+    let setOut = fold altFtF 0 s1 in
+    assert (listOut==setOut);
+    ()
+
+  let test_is_empty () = 
+    let elts = generate_random_list testSize in
+    let s1 = insert_list empty elts in
+    assert (not (is_empty s1));
+    let s2 = List.fold_right (fun k r -> remove k r) elts s1 in
+    assert (is_empty s2);
+    ()
+
+  let test_singleton () = 
+    let ourKey = C.gen_random () in
+    let s1 = singleton ourKey in
+    let outPair =  choose s1 in
+    let outKey = match outPair with
+                    Some (elta, seta) -> elta
+                  | None -> C.gen_random ()
+    in
+    let outSet = match outPair with
+                    Some (elta, seta) -> seta
+                  | None -> s1
+    in
+    assert (outKey == ourKey);
+    assert (is_empty outSet);
+    ()
+
 
   (* add your test functions to run_tests *)
   let run_tests () = 
-    ()
+    print_string "running tests";
+    test_insert () ;
+    test_remove () ;
+    test_union () ;
+    test_intersect () ;
+    test_member () ;
+    test_choose () ;
+    test_fold () ;
+    test_is_empty () ;
+    test_singleton () ;
+    () 
 end
 
 
@@ -336,10 +517,10 @@ IntListSet.run_tests();;
  * 
  * Uncomment out the lines below when you are ready to test your
  * 2-3 dict set implementation *)
-(*
+
 module IntDictSet = DictSet(IntComparable) ;;
 IntDictSet.run_tests();;
-*)
+
 
 
 (******************************************************************)
@@ -349,6 +530,6 @@ IntDictSet.run_tests();;
 module Make(C : COMPARABLE) : (SET with type elt = C.t) = 
   (* Change this line to use our dictionary implementation when your are 
    * finished. *)
-  ListSet (C)
+  DictSet (C)
   (* DictSet (C) *)
 
