@@ -226,18 +226,85 @@ end
 (* DictSet: a functor that creates a SET by calling our           *)
 (* Dict.Make functor                                              *)
 (******************************************************************)
-(*
+
 module DictSet(C : COMPARABLE) : (SET with type elt = C.t) = 
 struct
   module D = Dict.Make(struct
-      ??? fill this in!
-  end)
+      type key = C.t
+      type value = unit
+      let compare = C.compare
+      let string_of_key = C.string_of_t
+      let string_of_value = fun x -> ""
+      let gen_key unit =  C.gen ()
+      let gen_key_random  unit = C.gen_random ()
+      let gen_key_gt x unit = C.gen_gt x ()
+      let gen_key_lt x unit = C.gen_lt x ()
+      let gen_key_between x y unit = C.gen_between x y ()
+      let gen_value = fun x -> ()
+      let gen_pair unit = (C.gen unit, ())
+          end)
 
   type elt = D.key
   type set = D.dict
-  let empty = ???
+  let empty = D.empty
 
   (* implement the rest of the functions in the signature! *)
+  let is_empty (s:set) : bool =
+    if s == empty then true
+    else false  
+       
+  let insert (aKey:elt) (theSet:set) : set =
+    D.insert theSet aKey ()
+
+  (* same as insert x empty *)         
+  let singleton (aKey:elt) :  set =
+    D.insert empty aKey ()
+  
+  let union (setA:set) (setB:set) : set = 
+    let rec unionMaker (toAdd:set) (theUnion:set) = 
+      match D.choose toAdd with None -> theUnion
+      | Some (newKey, newVal, newDict) -> 
+        unionMaker newDict (insert newKey theUnion)
+    in
+    unionMaker setA setB
+
+  let intersect (setA:set) (setB:set) : set = 
+    let rec sectMaker (setC:set) (setD:set) (interSet:set) : set =
+      match D.choose setC with
+   None -> interSet
+      | Some (newKey, newVal, newDict) ->
+   (if (D.member setD newKey) then
+      sectMaker newDict setD (insert newKey interSet)
+    else sectMaker newDict setD interSet)
+    in
+    sectMaker setA setB empty
+        
+  (* remove an element from the set -- if the                      
+   * element isn't present, does nothing. *)
+  let remove (aKey:elt) (aSet:set) : set = 
+    D.remove aSet aKey
+       
+  (* returns true iff the element is in the set *)
+  let member (aSet:set) (aKey:elt) : bool = 
+    D.member aSet aKey
+
+  (* chooses some member from the set, removes it
+   * and returns that element plus the new set
+   * If the set is empty, returns None. *)
+  let choose (aSet:set) : (elt*set) option = 
+    match D.choose aSet with
+      None -> None
+    | Some (aKey, aVal, aDict) -> Some (aKey, aDict)
+               
+  (* fold a function across the elements of the set
+   * in some unspecified order. *)
+
+  let fold (toApply:(elt->'a->'a)) (aVal:'a) (aSet:set) : 'a =
+    
+    let dictApply (aKey:D.key) (aVal:D.value) (a:'a) : 'a = 
+      toApply aKey a
+    in
+    D.fold dictApply aVal aSet
 
   let string_of_elt = D.string_of_key
   let string_of_set s = D.string_of_dict s
@@ -253,7 +320,7 @@ struct
   let run_tests () = 
     ()
 end
-*)
+
 
 
 
