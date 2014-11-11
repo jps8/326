@@ -350,11 +350,21 @@ struct
   (* How do we represent an empty dictionary with 2-3 trees? *)
   let empty : dict = Leaf
 
-  (* Implement fold. Read the specification in the DICT signature above. *)
+  (* Read the specification in the DICT signature above. *)
   let rec fold (f: key -> value -> 'a -> 'a) (u: 'a) (d: dict) : 'a =
-    match choose d with
-    | None -> u
-    | Some (key, value, rest) -> f key value (fold f u rest)
+    let rec list_of_dict mdict =
+      match mdict with 
+      | Leaf -> []
+      | Two (l,n,r) -> n :: ((list_of_dict l) @ (list_of_dict r))
+      | Three (l,n1,m,n2,r) -> 
+      n1::(n2::((list_of_dict l) @ ((list_of_dict m) @ (list_of_dict r))))
+    in
+    let rec list_fold lf lu ld = 
+      match ld with
+      | [] -> lu
+      | (k,v)::tl -> f k v (list_fold lf lu tl)
+    in
+    list_fold f u (list_of_dict d)
 
   (* Implement these to-string functions *)
   let string_of_key = D.string_of_key
@@ -404,7 +414,7 @@ struct
     let (w_key, w_val) = w in
     let (x_key, x_val) = x in
     match D.compare w_key x_key with
-    | Eq -> raise DownwardEqualityFailed "insert_upward_two found equality"
+    | Eq -> raise (DownwardEqualityFailed "insert_upward_two found equality")
     | Less -> Done(Three(w_left, w, w_right, x, x_other))
     | Greater -> Done(Three(x_other, x, w_left, w, w_right))
 
@@ -426,8 +436,8 @@ struct
     let (x_key, x_val) = x in
     let (y_key, y_val) = y in
     match D.compare w_key x_key, D.compare w_key y_key with
-    | Eq, _ -> raise DownwardEqualityFailed "insert_upward_three found equality"
-    | _, Eq -> raise DownwardEqualityFailed "insert_upward_three found equality"
+    | Eq, _ -> raise (DownwardEqualityFailed "insert_upward_three found equality")
+    | _, Eq -> raise (DownwardEqualityFailed "insert_upward_three found equality")
     | Less, _ -> Up(Two(w_left, w, w_right), x, Two(other_left, y, other_right))
     | Greater, Less -> Up(Two(other_left, x, w_left), w, Two(w_right, y, other_right))
     | _, Greater -> Up(Two(other_left, x, other_right), y, Two(w_left, w, w_right))
@@ -494,7 +504,7 @@ struct
       | Up(l,w,r) ->
         insert_upward_two w l r (k1,v1) right 
     )
-    | Greater -> insert_downward right k v(
+    | Greater -> (
       match insert_downward right k v with
       | Done d -> Done(Two(left, (k1,v1), d))
       | Up(l,w,r) ->
@@ -554,8 +564,8 @@ struct
     match dir,n,left,right with
       | Left2,x,l,Two(m,y,r) -> Hole(rem,Three(l,x,m,y,r))
       | Right2,y,Two(l,x,m),r -> Hole(rem,Three(l,x,m,y,r))
-      | Left2,x,a,Three(b,y,c,z,d) -> Absorbed(Two(Two(a,x,b),y,Two(c,z,d)))
-      | Right2,z,Three(a,x,b,y,c),d -> Absorbed(Two(Two(a,x,b),y,Two(c,z,d)))
+      | Left2,x,a,Three(b,y,c,z,d) -> Absorbed(rem,Two(Two(a,x,b),y,Two(c,z,d)))
+      | Right2,z,Three(a,x,b,y,c),d -> Absorbed(rem,Two(Two(a,x,b),y,Two(c,z,d)))
       | Left2,_,_,_ | Right2,_,_,_ -> Absorbed(rem,Two(Leaf,n,Leaf))
 
   (* Upward phase for removal where the parent of the hole is a Three node.
@@ -710,7 +720,7 @@ struct
 
   (* Test if a given key is in our dictionary *)
   let member (d: dict) (k: key) : bool =
-    match lookup d key with
+    match lookup d k with
     | None -> false
     | Some value -> true
 
@@ -722,8 +732,9 @@ struct
   let choose (d: dict) : (key * value * dict) option =
     match remove_min d with
     | Hole (None, rest) -> None
+    | Absorbed (None, _) -> None
     | Hole (Some (key, value), rest) -> Some (key, value, rest)
-    | Absorbed ((key, value), rest) -> Some (key, value, rest)
+    | Absorbed (Some (key, value), rest) -> Some (key, value, rest)
 
   (* A function that when given a 2-3 tree (represented by our
    * dictionary d), returns true if and only if the tree is "balanced", 
@@ -735,7 +746,7 @@ struct
    *    Every node must have all leaves underneath it or all balanced nodes.
    *)
   let rec balanced (d: dict) : bool =
-    match dict with
+    match d with
     | Leaf -> true
     | Two (left, pair, right) -> (
       match (balanced left, balanced right) with
