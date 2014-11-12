@@ -178,11 +178,11 @@ struct
     match d with 
       | [] -> []
       | (k1,v1)::d1 ->
-	(match D.compare k k1 with 
+  (match D.compare k k1 with 
           | Eq -> d1
           | Greater -> (k1,v1)::(remove d1 k)
           | _ -> d)
-	  
+    
   let choose d = 
     match d with 
       | [] -> None
@@ -436,11 +436,16 @@ struct
     let (x_key, x_val) = x in
     let (y_key, y_val) = y in
     match D.compare w_key x_key, D.compare w_key y_key with
-    | Eq, _ -> raise (DownwardEqualityFailed "insert_upward_three found equality")
-    | _, Eq -> raise (DownwardEqualityFailed "insert_upward_three found equality")
-    | Less, _ -> Up(Two(w_left, w, w_right), x, Two(other_left, y, other_right))
-    | Greater, Less -> Up(Two(other_left, x, w_left), w, Two(w_right, y, other_right))
-    | _, Greater -> Up(Two(other_left, x, other_right), y, Two(w_left, w, w_right))
+    | Eq, _ -> 
+      raise (DownwardEqualityFailed "insert_upward_three found equality")
+    | _, Eq -> 
+      raise (DownwardEqualityFailed "insert_upward_three found equality")
+    | Less, _ -> 
+      Up(Two(w_left, w, w_right), x, Two(other_left, y, other_right))
+    | Greater, Less -> 
+      Up(Two(other_left, x, w_left), w, Two(w_right, y, other_right))
+    | _, Greater -> 
+      Up(Two(other_left, x, other_right), y, Two(w_left, w, w_right))
 
   (* Downward phase for inserting (k,v) into our dictionary d. 
    * The downward phase returns a "kicked" up configuration, where
@@ -518,11 +523,16 @@ struct
       (left: dict) (middle: dict) (right: dict) : kicked =
     if left = Leaf && middle = Leaf && right = Leaf then (
       match D.compare k k1, D.compare k k2 with
-      | Eq, _ -> Done(Three(left, (k1, v), middle, (k2, v2), right))
-      | _, Eq -> Done(Three(left, (k1, v1), middle, (k2, v), right))
-      | Less, _ -> Up(Two(Leaf, (k,v), Leaf), (k1,v1), Two(Leaf, (k2,v2), Leaf))
-      | Greater, Less -> Up(Two(Leaf, (k1,v1), Leaf), (k,v), Two(Leaf, (k2,v2), Leaf))
-      | _, Greater -> Up(Two(Leaf, (k1,v1), Leaf), (k2,v2), Two(Leaf, (k,v), Leaf))
+      | Eq, _ -> 
+        Done(Three(left, (k1, v), middle, (k2, v2), right))
+      | _, Eq -> 
+        Done(Three(left, (k1, v1), middle, (k2, v), right))
+      | Less, _ -> 
+        Up(Two(Leaf, (k,v), Leaf), (k1,v1), Two(Leaf, (k2,v2), Leaf))
+      | Greater, Less -> 
+        Up(Two(Leaf, (k1,v1), Leaf), (k,v), Two(Leaf, (k2,v2), Leaf))
+      | _, Greater -> 
+        Up(Two(Leaf, (k1,v1), Leaf), (k2,v2), Two(Leaf, (k,v), Leaf))
     ) else
     match D.compare k k1, D.compare k k2 with
     | Eq, _ -> Done(Three(left, (k1, v), middle, (k2, v2), right))
@@ -562,11 +572,16 @@ struct
   let remove_upward_two (n: pair) (rem: pair option) 
       (left: dict) (right: dict) (dir: direction2) : hole =
     match dir,n,left,right with
-      | Left2,x,l,Two(m,y,r) -> Hole(rem,Three(l,x,m,y,r))
-      | Right2,y,Two(l,x,m),r -> Hole(rem,Three(l,x,m,y,r))
-      | Left2,x,a,Three(b,y,c,z,d) -> Absorbed(rem,Two(Two(a,x,b),y,Two(c,z,d)))
-      | Right2,z,Three(a,x,b,y,c),d -> Absorbed(rem,Two(Two(a,x,b),y,Two(c,z,d)))
-      | Left2,_,_,_ | Right2,_,_,_ -> Absorbed(rem,Two(Leaf,n,Leaf))
+      | Left2,x,l,Two(m,y,r) -> 
+        Hole(rem,Three(l,x,m,y,r))
+      | Right2,y,Two(l,x,m),r -> 
+        Hole(rem,Three(l,x,m,y,r))
+      | Left2,x,a,Three(b,y,c,z,d) -> 
+        Absorbed(rem,Two(Two(a,x,b),y,Two(c,z,d)))
+      | Right2,z,Three(a,x,b,y,c),d -> 
+        Absorbed(rem,Two(Two(a,x,b),y,Two(c,z,d)))
+      | Left2,_,_,_ | Right2,_,_,_ -> 
+        Absorbed(rem,Two(Leaf,n,Leaf))
 
   (* Upward phase for removal where the parent of the hole is a Three node.
    * See cases (3-4) on the handout. n1 and n2 are the (key,value) pairs
@@ -576,14 +591,22 @@ struct
   let remove_upward_three (n1: pair) (n2: pair) (rem: pair option)
       (left: dict) (middle: dict) (right: dict) (dir: direction3) : hole =
     match dir,n1,n2,left,middle,right with
-      | Left3,x,z,a,Two(b,y,c),d -> Absorbed(rem,Two(Three(a,x,b,y,c),z,d))
-      | Mid3,y,z,Two(a,x,b),c,d -> Absorbed(rem,Two(Three(a,x,b,y,c),z,d))
-      | Mid3,x,y,a,b,Two(c,z,d) -> Absorbed(rem,Two(a,x,Three(b,y,c,z,d)))
-      | Right3,x,z,a,Two(b,y,c),d -> Absorbed(rem,Two(a,x,Three(b,y,c,z,d)))
-      | Left3,w,z,a,Three(b,x,c,y,d),e -> Absorbed(rem,Three(Two(a,w,b),x,Two(c,y,d),z,e))
-      | Mid3,y,z,Three(a,w,b,x,c),d,e -> Absorbed(rem,Three(Two(a,w,b),x,Two(c,y,d),z,e))
-      | Mid3,w,x,a,b,Three(c,y,d,z,e) -> Absorbed(rem,Three(a,w,Two(b,x,c),y,Two(d,z,e)))
-      | Right3,w,z,a,Three(b,x,c,y,d),e -> Absorbed(rem,Three(a,w,Two(b,x,c),y,Two(d,z,e)))
+      | Left3,x,z,a,Two(b,y,c),d -> 
+        Absorbed(rem,Two(Three(a,x,b,y,c),z,d))
+      | Mid3,y,z,Two(a,x,b),c,d -> 
+        Absorbed(rem,Two(Three(a,x,b,y,c),z,d))
+      | Mid3,x,y,a,b,Two(c,z,d) -> 
+        Absorbed(rem,Two(a,x,Three(b,y,c,z,d)))
+      | Right3,x,z,a,Two(b,y,c),d -> 
+        Absorbed(rem,Two(a,x,Three(b,y,c,z,d)))
+      | Left3,w,z,a,Three(b,x,c,y,d),e -> 
+        Absorbed(rem,Three(Two(a,w,b),x,Two(c,y,d),z,e))
+      | Mid3,y,z,Three(a,w,b,x,c),d,e -> 
+        Absorbed(rem,Three(Two(a,w,b),x,Two(c,y,d),z,e))
+      | Mid3,w,x,a,b,Three(c,y,d,z,e) -> 
+        Absorbed(rem,Three(a,w,Two(b,x,c),y,Two(d,z,e)))
+      | Right3,w,z,a,Three(b,x,c,y,d),e -> 
+        Absorbed(rem,Three(a,w,Two(b,x,c),y,Two(d,z,e)))
       | Left3,_,_,_,_,_ | Mid3,_,_,_,_,_ | Right3,_,_,_,_,_ ->
         Absorbed(rem,Three(Leaf,n1,Leaf,n2,Leaf))
 
@@ -677,7 +700,8 @@ struct
     match d with
       | Leaf -> Hole(None,Leaf)
       | Two(Leaf,n,_) -> Hole(Some n,Leaf)
-      | Three(Leaf,n1,middle,n2,right) -> Absorbed(Some n1,Two(middle,n2,right))
+      | Three(Leaf,n1,middle,n2,right) -> 
+        Absorbed(Some n1,Two(middle,n2,right))
       | Two(left,n,right) -> 
         (match remove_min left with
           | Hole(rem,t) -> remove_upward_two n rem t right Left2
@@ -685,7 +709,8 @@ struct
         )
       | Three(left,n1,middle,n2,right) ->
         (match remove_min left with
-          | Hole(rem,t) -> remove_upward_three n1 n2 rem t middle right Left3
+          | Hole(rem,t) -> 
+            remove_upward_three n1 n2 rem t middle right Left3
           | Absorbed(rem,t) -> Absorbed(rem,Three(t,n1,middle,n2,right))
         )
 

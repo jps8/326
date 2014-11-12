@@ -62,19 +62,6 @@ let rec crawl (n:int) (frontier: LinkSet.set)
     match LinkSet.choose frontier with
     | None -> d
     | Some (nextLink, rest) -> (
-      (* print_string ((string_of_link nextLink)^"\n");
-      let rec print_link_set lset =
-        match LinkSet.choose lset with
-        | None -> ()
-        | Some (hd, tl) -> print_string ((string_of_link hd)^" ");
-        print_link_set tl
-      in
-      let rec print_list_of_links l = 
-        match l with
-          | [] -> ()
-          | hd::tl -> print_string ((string_of_link hd)^" ");
-          print_list_of_links tl
-      in *)
       match CrawlerServices.get_page nextLink with
       | None -> d
       | Some page -> (
@@ -83,19 +70,14 @@ let rec crawl (n:int) (frontier: LinkSet.set)
           match l with 
           | [] -> LinkSet.empty
           | hd::tl -> (
-            if LinkSet.member setToRemove hd then (listToDiffSet tl setToRemove)
-            else LinkSet.insert hd (listToDiffSet tl setToRemove)
+            if LinkSet.member setToRemove hd then 
+              (listToDiffSet tl setToRemove)
+            else 
+              LinkSet.insert hd (listToDiffSet tl setToRemove)
           )
         in
         let unvisitedLinks = listToDiffSet page.links newVisited in
         let newFrontier = LinkSet.union unvisitedLinks rest in
-        (* print_string "\npage.links: "; print_list_of_links page.links;
-        print_string "\nunvisitedLinks: "; print_link_set unvisitedLinks;
-        print_string "\nvisited: "; print_link_set visited;
-        print_string "\nrest: "; print_link_set rest;
-        print_string "\nnewVisited: "; print_link_set newVisited;
-        print_string "\nnewFrontier: "; print_link_set newFrontier;
-        print_string "\n\n"; *)
         let rec updatedDict oldDict (link:LinkSet.elt) wordList = 
           match wordList with
           | [] -> oldDict
@@ -103,7 +85,8 @@ let rec crawl (n:int) (frontier: LinkSet.set)
             let inserted =
               match WordDict.lookup oldDict hd with 
               | None -> WordDict.insert oldDict hd (LinkSet.singleton link)
-              | Some assocLinks -> WordDict.insert oldDict hd (LinkSet.insert link assocLinks)
+              | Some assocLinks -> 
+                WordDict.insert oldDict hd (LinkSet.insert link assocLinks)
             in
             updatedDict inserted link tl
           )
