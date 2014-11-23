@@ -42,7 +42,8 @@ end;;
 (* Fill this in *)
 (****************)
 let abstract (q : int list * int list) : int list =
-  failwith "unimplemented"
+  match q with
+    | (front, back) -> front @ (List.rev back)
 ;;
 
 let client1 emp ins rem =
