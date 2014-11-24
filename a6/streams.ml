@@ -112,20 +112,19 @@ let rec nth (n:num) (s:'a stream) : 'a =
 let merge (s1:num stream) (s2:num stream) : num stream =
   let rec merge_aux str1 str2 last_added =
     let add_if_new new_val new_s1 new_s2 = 
-      let has_last =
-        match last_added with
-        | None -> false
-        | _ -> true
-      in
-      if has_last = false || new_val <>/ last_added then 
-        lazy ( Cons (new_val, merge_aux new_s1 new_s2 (Some new_val)) )
-      else
-        merge new_s1 new_s2 last_added
+      match last_added with
+      | None -> merge_aux new_s1 new_s2 last_added
+      | Some last -> (
+        if new_val <>/ last then 
+          lazy ( Cons (new_val, merge_aux new_s1 new_s2 (Some new_val)) )
+        else
+          merge_aux new_s1 new_s2 last_added
+      )
     in
     let (hd1, tl1) = (head str1, tail str1) in
     let (hd2, tl2) = (head str2, tail str2) in (
       if hd1 =/ hd2 then add_if_new hd1 tl1 tl2
-      else if hd1 </ hd2 then add_if_new h1 tl1 str2
+      else if hd1 </ hd2 then add_if_new hd1 tl1 str2
       else add_if_new hd2 str1 tl2
     )
   in
@@ -189,13 +188,13 @@ let get ((i,j):coordinates) (ss:'a spread_sheet) : 'a =
  *)
 let map_all (f:num -> num -> 'a -> 'b) (ss:'a spread_sheet) : 'b spread_sheet = 
   (* j changes, i is constant for the row *)
-  let single_row row_i j row_s =
+  let rec single_row row_i j row_s =
     match (head row_s, tail row_s) with 
     | (hd, tl) -> lazy (
-      Cons ((f row_i j hd), single_row row_i (j+/i) tl)
+      Cons ((f row_i j hd), single_row row_i (j +/ one) tl)
     )
   in
-  let rows_map i ss_remaining = 
+  let rec rows_map i ss_remaining = 
     match (head ss_remaining, tail ss_remaining) with 
     | (row, remaining) -> lazy (
       Cons (single_row i zero row, rows_map (i+/one) remaining)
