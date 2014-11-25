@@ -65,10 +65,8 @@ struct
     | Some value -> value
 
   and get_mem_val n = 
-    if D.mem n !history then
-    (* print_string ((string_of_int n)^" cache_hit\n"); *)
-    ( Some (D.find n !history))
-    else None (* (print_string ((string_of_int n)^" cache miss\n"); None) *)
+    if D.mem n !history then ( Some (D.find n !history))
+    else None
  
   and calculate_fib n = 
     (if n < 0 then failwith "Can't handle negative Fibonacci args");
@@ -159,6 +157,6 @@ let main () =
 (* uncomment this block to run tests, 
  * but please do not submit with it uncommented
  *)
+(*
 main ();;
-
-
+*)
