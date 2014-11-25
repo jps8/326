@@ -52,7 +52,32 @@ end;;
 module MemoFib (D : DICT with type key = int) : FIB =
 struct
 
-  let fib _ = failwith "unimplemented"                                                                                                   
+  let history = ref D.empty
+
+  let rec fib n =
+    match get_mem_val n with
+    | None -> (
+      let result = calculate_fib n in (
+        store_val n result;
+        result
+      )
+    )
+    | Some value -> value
+
+  and get_mem_val n = 
+    if D.mem n !history then
+    (* print_string ((string_of_int n)^" cache_hit\n"); *)
+    ( Some (D.find n !history))
+    else None (* (print_string ((string_of_int n)^" cache miss\n"); None) *)
+ 
+  and calculate_fib n = 
+    (if n < 0 then failwith "Can't handle negative Fibonacci args");
+    if n < 2 then 1 
+    else fib (n-1) + fib (n-2)
+
+  and store_val n result =
+    history := D.add n result !history
+
 end;;
 
 module ManualMemoedFib = MemoFib(Map.Make(IntOrder));;
@@ -64,8 +89,17 @@ module ManualMemoedFib = MemoFib(Map.Make(IntOrder));;
  *   IntOrder from above                 *)
 module AutoMemoedFib : FIB =
 struct
+  
+  module D = Map.Make(IntOrder)
 
-  let fib _ = failwith "unimplemented"
+  module M = Memoizer(D)
+
+  let fib_stepwise (recurse:int->int) (n:int) : int =
+    (if n < 0 then failwith "Can't handle negative Fibonacci args");
+    if n < 2 then 1 
+    else recurse (n-1) + recurse (n-2)
+
+  let fib = M.memo fib_stepwise
 
 end;;
 
@@ -103,12 +137,10 @@ let experiment (n:int) : unit =
   let slow n = if n > 42 then None else Some (time_fun Fib.fib n) in
   let fast = time_fun FastFib.fib  in   
   let manual = 
-    (* time_fun ManualMemoedFib.fib *)  (* CHANGE THIS! *)
-    (fun n -> 0.) 
+    time_fun ManualMemoedFib.fib
   in   
   let automated = 
-    (* time_fun AutoMemoedFib.fib *)    (* CHANGE THIS! *)
-    (fun n -> 0.) 
+    time_fun AutoMemoedFib.fib
   in  
   print_row n (slow n) (fast n) (manual n) (automated n)
 ;;
@@ -122,11 +154,11 @@ let main () =
   List.iter experiment trials
 ;;
 
-(*
+
 
 (* uncomment this block to run tests, 
  * but please do not submit with it uncommented
  *)
 main ();;
-*)
+
 
