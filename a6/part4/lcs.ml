@@ -130,7 +130,7 @@ let main () =
     copied from fib.ml. This also prints the results of the functions,
     which makes the execution twice as slow but ensures the fast function
     works.*)
-  let trials = [1;2;4;8;16;17;18;19;20] in
+  let trials = [1;2;4;8;13;14;15] in
   print_header();
   List.iter experiment trials
 ;;
@@ -139,4 +139,4 @@ let main () =
 (* uncomment this block to run your experiment, 
  * but please do not submit with it uncommented
  *)
-(* main ();; *)
+(* main ();;  *)
