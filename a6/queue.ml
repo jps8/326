@@ -217,8 +217,8 @@ module Performance (Q:QUEUE) : PERF = struct
       if counter > 0 then 
         match Q.rem qLast with
         | None -> Q.emp
-        | Some (hd, tail) -> aux2 (counter-1) tail
-      else qLast
+        | Some (hd, tail) -> aux2 (counter-      else qLast
+1) tail
     in
     let fullQ = aux1 (n/2) (Q.emp) in 
     let emptyQ = aux2 (n/2) fullQ in
@@ -258,12 +258,12 @@ module Performance (Q:QUEUE) : PERF = struct
       if counter > 0 then 
         match Q.rem qLast with
         | None -> Q.emp
-        | Some (hd, tail) -> aux2 (counter-1) tail
+        | Some (hd, tail) -> aux2 (counter-1) qLast
       else qLast
     in
     let fullQ = aux1 (n/2) (Q.emp) in 
-    let emptyQ = aux2 (n/2) fullQ in
-    assert (Q.rem emptyQ == None);
+    let lastQ = aux2 (n/2) fullQ in
+    assert (Q.rem lastQ != None);
     Unix.gettimeofday()-.startTime
 end;;
 
