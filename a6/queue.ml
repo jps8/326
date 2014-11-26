@@ -121,7 +121,41 @@ module AmortizedQ : QUEUE = struct
    * the fact that the check function is called at the end of insert
    * and at the end of rem.  What representation invariant does it 
    * help to ensure?  *)
-  let rep_inv (lenf,front,lenb,back) = failwith "unimplemented";; 
+  let rep_inv (lenf,front,lenb,back) =
+
+    (* calculate length of a LL.llist *)
+    let rec ourLen (inList:'a LL.llist) : int =  
+      match LL.reveal inList with
+        | LL.Nil -> 0
+        | LL.Cons (hd,tail) -> (1 + (ourLen tail))
+    in
+
+    let frontLength = ourLen front in
+    let backLength =  ourLen back in
+
+    (* make sure lenf is the length of the front list *)
+    let inv1 = (frontLength == lenf) in
+ 
+    (* make sure lenb is the length of the back list *)
+    let inv2 = (backLength == lenb) in
+
+    (* make sure lenb is <= lenf *)
+    let inv3 = (lenb <= lenf) in
+
+    (* make sure front list and back list contain Nil *)
+    let inv4 = 
+      let rec aux (inList:'a LL.llist) : bool = 
+        match LL.reveal inList with
+          | LL.Nil -> true
+          | LL.Cons (hd,tail) -> aux tail
+      in
+      ((aux front) && (aux back))
+    in
+
+    (* make sure lenf and lenb are natural numbers *)
+    let inv5 =  ((lenf >= 0) && (lenb >= 0)) in
+
+    (inv1 && inv2 && inv3 && inv4 && inv5)
 
   let emp = (0, LL.empty, 0, LL.empty)
 
@@ -152,7 +186,7 @@ module type PERF = sig
 end;;
 
 module Performance (Q:QUEUE) : PERF = struct
-
+  type intQ = (int) Q.q
   (* test1:
    *
    * Executes a series of n queue operations and returns time taken.
@@ -172,7 +206,25 @@ module Performance (Q:QUEUE) : PERF = struct
    *
    * EXPLAIN WHAT YOUR TEST DOES IN A COMMENT
    *)
-  let test1 (n:int) = 0.0;;
+  let test1 (n:int) = 
+    let startTime = Unix.gettimeofday() in 
+    let rec aux1 (counter:int) (qLast:intQ) : intQ = 
+      if counter > 0 then 
+        (aux1 (counter-1) (Q.ins (1,qLast)))
+      else qLast
+    in
+    let rec aux2 (counter:int) (qLast:intQ) : intQ = 
+      if counter > 0 then 
+        match Q.rem qLast with
+        | None -> Q.emp
+        | Some (hd, tail) -> aux2 (counter-1) tail
+      else qLast
+    in
+    let fullQ = aux1 (n/2) (Q.emp) in 
+    let emptyQ = aux2 (n/2) fullQ in
+    assert (Q.rem emptyQ == None);
+    Unix.gettimeofday()-.startTime
+  ;;
 
   (* test2:
    *
@@ -195,7 +247,24 @@ module Performance (Q:QUEUE) : PERF = struct
    *
    * EXPLAIN WHAT YOUR TEST DOES IN A COMMENT
    *)
-  let test2 (n:int) = 0.0;;
+  let test2 (n:int) = 
+    let startTime = Unix.gettimeofday() in 
+    let rec aux1 (counter:int) (qLast:intQ) : intQ = 
+      if counter > 0 then 
+        (aux1 (counter-1) (Q.ins (1,qLast)))
+      else qLast
+    in
+    let rec aux2 (counter:int) (qLast:intQ) : intQ = 
+      if counter > 0 then 
+        match Q.rem qLast with
+        | None -> Q.emp
+        | Some (hd, tail) -> aux2 (counter-1) tail
+      else qLast
+    in
+    let fullQ = aux1 (n/2) (Q.emp) in 
+    let emptyQ = aux2 (n/2) fullQ in
+    assert (Q.rem emptyQ == None);
+    Unix.gettimeofday()-.startTime
 end;;
 
 module SlowestP = Performance(SlowestQ);;
@@ -239,15 +308,15 @@ let main () =
    * linear then you should see an approximate doubling of the time taken
    * If your algorithm is quadratic, you should see an approximate 
    * quadrupling of the time taken  *)
-  let ns = [1000; 2000; 4000; 8000; 16000; 32000] in
+  let ns = [1000; 2000; 4000; 8000; 16000; 32000; 64000] in
   print_header();
   List.iter experiment ns
 ;;
 
-(*
+
 
 (* uncomment this block to run tests, 
  * but please do not submit with it uncommented
  *)
 main ();;
-*)
+
