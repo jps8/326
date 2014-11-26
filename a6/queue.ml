@@ -186,7 +186,6 @@ module type PERF = sig
 end;;
 
 module Performance (Q:QUEUE) : PERF = struct
-  type intQ = (int) Q.q
   (* test1:
    *
    * Executes a series of n queue operations and returns time taken.
@@ -206,13 +205,30 @@ module Performance (Q:QUEUE) : PERF = struct
    *
    * EXPLAIN WHAT YOUR TEST DOES IN A COMMENT
    *)
+
+  (* queue of ints type *)
+  type intQ = (int) Q.q
+
+
+  (* adds n/2 1's to an empty queue, creating a queue with length n/2 then 
+   * removes 1 repeatedly (n/2 times) until the final queue has length 0. 
+   * This takes advantage of SlowQ's implementation in that it only has to
+   * reverse its list once, meaning it will have roughly linear time, while
+   * SlowestQ has to read through the list of 1's all the way every 
+   * ins call. Amortized Q keeps its linear behavior. 
+   *)
+
+
   let test1 (n:int) = 
-    let startTime = Unix.gettimeofday() in 
+
+    (* adds counter 1's to qLast *)
     let rec aux1 (counter:int) (qLast:intQ) : intQ = 
       if counter > 0 then 
         (aux1 (counter-1) (Q.ins (1,qLast)))
       else qLast
     in
+
+    (* removes counter 1's from qLast *)
     let rec aux2 (counter:int) (qLast:intQ) : intQ = 
       if counter > 0 then 
         match Q.rem qLast with
@@ -220,9 +236,18 @@ module Performance (Q:QUEUE) : PERF = struct
         | Some (hd, tail) -> aux2 (counter-1) tail
       else qLast
     in
+
+    (* start timing *)
+    let startTime = Unix.gettimeofday() in 
+
+    (* call adding and removing functions *)
     let fullQ = aux1 (n/2) (Q.emp) in 
     let emptyQ = aux2 (n/2) fullQ in
+
+    (* make sure emptyQ is empty *)
     assert (Q.rem emptyQ == None);
+
+    (* print out time *)
     Unix.gettimeofday()-.startTime
   ;;
 
@@ -248,14 +273,23 @@ module Performance (Q:QUEUE) : PERF = struct
    * EXPLAIN WHAT YOUR TEST DOES IN A COMMENT
    *)
 
-  (* adds n/2 ones) *)
+  (* adds n/2 1's to an empty queue, creating a queue with length n/2 then 
+   * removes one 1 n/2 times from the same queue of length n/2. Never does 
+   * anything with the resulting queue of length n/2-1, just reuses the 
+   * same longer queue. This forces the SlowQ implementation to reverse its
+   * backlist every time, resulting in quadratic behavior, while with the
+   * lazy list in AmortizedQ, such behavior doesn't ensue. 
+   *)
   let test2 (n:int) = 
-    let startTime = Unix.gettimeofday() in 
+
+    (* adds counter 1's to qLast *)
     let rec aux1 (counter:int) (qLast:intQ) : intQ = 
       if counter > 0 then 
         (aux1 (counter-1) (Q.ins (1,qLast)))
       else qLast
     in
+
+    (* removes from qLast counter times *)
     let rec aux2 (counter:int) (qLast:intQ) : intQ = 
       if counter > 0 then 
         match Q.rem qLast with
@@ -263,9 +297,18 @@ module Performance (Q:QUEUE) : PERF = struct
         | Some (hd, tail) -> aux2 (counter-1) qLast
       else qLast
     in
+
+    (* start timing *)
+    let startTime = Unix.gettimeofday() in 
+
+    (* run inserting and removing functions *)
     let fullQ = aux1 (n/2) (Q.emp) in 
     let lastQ = aux2 (n/2) fullQ in
+
+    (* make sure emptyQ is not empty *)
     assert (Q.rem lastQ != None);
+
+    (* print out runtime *)
     Unix.gettimeofday()-.startTime
 end;;
 
