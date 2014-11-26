@@ -94,12 +94,15 @@ let print_row n slow fast =
   print_newline()
 ;;
 let random_base () : base =
-  match Random.int 4 with 
-  | 0 -> A
-  | 1 -> T
-  | 2 -> C
-  | 3 -> G
-  | _ -> failwith "impossible"
+  let char_base =
+    match Random.int 4 with 
+    | 0 -> 'A'
+    | 1 -> 'T'
+    | 2 -> 'C'
+    | 3 -> 'G'
+    | _ -> failwith "impossible"
+  in
+  Base.from_char char_base
 ;;
 let rec random_ds length = 
   if length <= 0 then ([], [])
