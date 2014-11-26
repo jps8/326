@@ -64,5 +64,27 @@ module Memoizer (D : DICT) : MEMOIZER with type key = D.key =
 struct
   type key = D.key
 
-  let memo _ = failwith "unimplemented"
+  let rec memod_f f_stepwise history = 
+    fun key -> (
+      match get_mem_val key history with
+      | None -> (
+        let result = ((f_stepwise (recur f_stepwise history)) key) in (
+          history := D.add key result !history;
+          result
+        )
+      )
+      | Some value -> value
+    )
+
+  and recur f_stepwise history =
+    fun key -> memod_f f_stepwise history key
+
+  and get_mem_val key history = 
+    if D.mem key !history then ( Some (D.find key !history))
+    else None 
+
+  let memo f_stepwise = 
+    let history = ref D.empty in
+    memod_f f_stepwise history
+
 end
