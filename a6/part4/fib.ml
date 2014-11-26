@@ -146,7 +146,7 @@ let experiment (n:int) : unit =
 let main () =
   (* change these numbers if you want depending on the speed of your machine *)
   (* on my machine slow_fib starts taking visible time at input 30 *)
-  let trials = [0;1;2;10;20;30;100;25000;50000;100000] in
+  let trials = [0;1;2;10;20;30;100;10000] in
   print_header();
   List.iter experiment trials
 ;;

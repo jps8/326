@@ -353,7 +353,7 @@ let main () =
    * linear then you should see an approximate doubling of the time taken
    * If your algorithm is quadratic, you should see an approximate 
    * quadrupling of the time taken  *)
-  let ns = [1000; 2000; 4000; 8000; 16000; 32000; 64000] in
+  let ns = [1000; 2000; 4000] in
   print_header();
   List.iter experiment ns
 ;;
@@ -363,6 +363,5 @@ let main () =
 (* uncomment this block to run tests, 
  * but please do not submit with it uncommented
  *)
-(*
-main ();;
-*)
+
+(* main ();; *)
