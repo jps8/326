@@ -217,8 +217,8 @@ module Performance (Q:QUEUE) : PERF = struct
       if counter > 0 then 
         match Q.rem qLast with
         | None -> Q.emp
-        | Some (hd, tail) -> aux2 (counter-      else qLast
-1) tail
+        | Some (hd, tail) -> aux2 (counter-1) tail
+      else qLast
     in
     let fullQ = aux1 (n/2) (Q.emp) in 
     let emptyQ = aux2 (n/2) fullQ in
@@ -247,6 +247,8 @@ module Performance (Q:QUEUE) : PERF = struct
    *
    * EXPLAIN WHAT YOUR TEST DOES IN A COMMENT
    *)
+
+  (* adds n/2 ones) *)
   let test2 (n:int) = 
     let startTime = Unix.gettimeofday() in 
     let rec aux1 (counter:int) (qLast:intQ) : intQ = 
@@ -318,5 +320,6 @@ let main () =
 (* uncomment this block to run tests, 
  * but please do not submit with it uncommented
  *)
+(*
 main ();;
-
+*)
