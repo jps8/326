@@ -14,7 +14,7 @@ module type S = sig
   val cons : 'a -> 'a t -> 'a t
   val singleton : 'a -> 'a t
   val append : 'a t -> 'a t -> 'a t
-  val nth : 'a t -> int -> 'a
+  val nth : 'a t -> int -> 'a 
   val map : ('a -> 'b) -> 'a t -> 'b t
   val map_reduce : ('a -> 'b) -> ('b -> 'b -> 'b) -> 'b -> 'a t -> 'b
   val reduce : ('a -> 'a -> 'a) -> 'a -> 'a t -> 'a
@@ -108,37 +108,83 @@ module Seq (Par : Future.S) (Arg : SEQ_ARGS) : S = struct
   let num_cores = System.cpu_count ()
 
 
-  let tabulate f n = failwith "implement me"
+  let tabulate (f : int->'a) (n : int) : 'a t = 
+    let rec start_children child_index =
+      if child_index >= num_cores then [] else
+      (*returns a sublist in the correct order *)
+      let child_func () : 'a list = 
+        let start_index = (child_index * n) / num_cores in
+        let end_index = (((child_index+1) * n) / num_cores)-1 in (*inclusive*)
+        let rec loop i =
+          if i > end_index then [] else
+          (f i)::(loop (i+1))
+        in
+        loop start_index
+      in
+      (Par.future child_func ())::(start_children (child_index+1))
+    in
+    let futures_list = start_children 0 in
+    let rec append_futures ls = 
+      match ls with 
+      | [] -> [||]
+      | hd::tl -> Array.append (Array.of_list (Par.force hd)) (append_futures tl)
+    in
+    append_futures futures_list
 
 
-  let seq_of_array a = a
+  let seq_of_array a = Array.copy a
 
 
-  let array_of_seq seq = seq
+  let array_of_seq seq = Array.copy seq
 
 
-  let iter f seq = failwith "implement me"
+  let iter f seq = 
+    let rec loop n =
+      if n >= Array.length seq then () else
+      f (Array.get seq n);
+      loop (n+1)
+    in
+    loop 0
 
 
-  let length seq = failwith "implement me"
+  let length seq = Array.length seq
 
 
-  let empty () = failwith "implement me"
+  let empty () = [||]
 
 
-  let cons elem seq = failwith "implement me"
+  let cons elem seq = Array.append ([| elem |]) seq
 
 
-  let singleton elem = failwith "implement me"
+  let singleton elem = [| elem |]
 
 
-  let append seq1 seq2 = failwith "implement me"
+  let append seq1 seq2 = Array.append seq1 seq2
 
 
-  let nth seq i = failwith "implement me"
+  let nth seq i = Array.get seq i
 
 
-  let map f seq = failwith "implement me"
+  let map f seq = 
+    let rec start_children child_index =
+      if child_index >= num_cores then [] else
+      (*returns a sublist in the correct order *)
+      let child_func () = 
+        let start_index = (child_index * n) / num_cores in
+        let end_index = (((child_index+1) * n) / num_cores) in (*exclusive*)
+        let arr_len = end_index - start_index in
+        let child_arr = Array.sub seq start_index arr_len in
+        (Array.map f child_arr)
+      in
+      (Par.future child_func ())::(start_children (child_index+1))
+    in
+    let futures_list = start_children 0 in
+    let rec append_futures ls = 
+      match ls with 
+      | [] -> [||]
+      | hd::tl -> Array.append (Par.force hd) (append_futures tl)
+    in
+    append_futures futures_list
 
 
   let map_reduce m r b seq = failwith "implement me"
@@ -147,16 +193,32 @@ module Seq (Par : Future.S) (Arg : SEQ_ARGS) : S = struct
   let reduce r = failwith "implement me"
 
 
-  let flatten seqseq = failwith "implement me"
+  let flatten seqseq = 
+    let rec loop i = 
+      if i >= Array.length seqseq then [||] else
+      Array.append (Array.get seqseq i) (loop (i+1))
+    in
+    loop 0
 
 
-  let repeat elem num = failwith "implement me"
+  let repeat elem num = Array.make num elem
 
 
-  let zip (seq1,seq2) = failwith "implement me"
+  let zip (seq1,seq2) = 
+    let (ls1, ls2) = (Array.to_list seq1, Array.to_list seq2) in
+    let rec zip l1 l2 = 
+      match (l1, l2) with
+      | ([], []) -> []
+      | ([], l) -> l
+      | (l, []) -> l
+      | (hd1::tl1, hd2::tl2) -> (hd1, hd2)::(zip tl1 tl2)
+    in
+    Array.of_list (zip ls1 ls2)
 
 
-  let split seq x = failwith "implement me"
+  let split seq x = 
+    let second_length = (Array.length seq) - x in
+    (Array.sub seq 0 x) * (Array.sub seq x second_length)
 
 
   (*******************************************************)
