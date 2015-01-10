@@ -168,7 +168,6 @@ module Seq (Par : Future.S) (Arg : SEQ_ARGS) : S = struct
   let map f seq = 
     let rec start_children child_index =
       if child_index >= num_cores then [] else
-      (*returns a sublist in the correct order *)
       let child_func () = 
         let start_index = (child_index * n) / num_cores in
         let end_index = (((child_index+1) * n) / num_cores) in (*exclusive*)
@@ -190,7 +189,26 @@ module Seq (Par : Future.S) (Arg : SEQ_ARGS) : S = struct
   let map_reduce m r b seq = failwith "implement me"
 
 
-  let reduce r = failwith "implement me"
+  let reduce r b seq = 
+  (*fix to only use b once*)
+    let rec start_children child_index =
+      if child_index >= num_cores then [] else
+      let child_func () = 
+        let start_index = (child_index * n) / num_cores in
+        let end_index = (((child_index+1) * n) / num_cores) in (*exclusive*)
+        let arr_len = end_index - start_index in
+        let child_arr = Array.sub seq start_index arr_len in
+        (Array.fold_left r b child_arr)
+      in
+      (Par.future child_func ())::(start_children (child_index+1))
+    in
+    let futures_list = start_children 0 in
+    let rec reduce_futures ls = 
+      match ls with 
+      | [] -> [||]
+      | hd::tl -> Array.append (Par.force hd) (append_futures tl)
+    in
+    append_futures futures_list
 
 
   let flatten seqseq = 
@@ -213,10 +231,10 @@ module Seq (Par : Future.S) (Arg : SEQ_ARGS) : S = struct
       | (l, []) -> l
       | (hd1::tl1, hd2::tl2) -> (hd1, hd2)::(zip tl1 tl2)
     in
-    Array.of_list (zip ls1 ls2)
+    Array.of_list (zip ls1 let)
 
 
-  let split seq x = 
+  ls2 split seq x = 
     let second_length = (Array.length seq) - x in
     (Array.sub seq 0 x) * (Array.sub seq x second_length)
 
