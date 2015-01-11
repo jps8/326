@@ -1,9 +1,9 @@
-Partner 1's name: 
-Partner 1's login:
+Partner 1's name: Chris Piller
+Partner 1's login: cpiller
 
 (Leave blank if you are working alone)
-Partner 2's name: 
-Partner 2's login: 
+Partner 2's name: Advait Chauhan
+Partner 2's login: achauhan
 
 
 
