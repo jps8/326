@@ -10,8 +10,8 @@ Partner 2's login: achauhan
 What kind of machine did you use to run your experiments? 
 Give the processor, number of cores, if you are using a VM.
 -----------------------------------------------------------
-
-
+Dell XPS 14 running Ubuntu (partition, not a VM).  
+3rd gen Intel Core i7 with 4 cores.
 
 
 Comment *briefly* on the chunking procedure in your sequence 

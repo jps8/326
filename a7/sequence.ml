@@ -109,12 +109,15 @@ module Seq (Par : Future.S) (Arg : SEQ_ARGS) : S = struct
 
 
   let tabulate (f : int->'a) (n : int) : 'a t = 
+    if n < 0 then failwith "bad arg" else
+    if n = 0 then [||] else
+    let cores = if num_cores > n / 2 then n / 2 else num_cores in (*practical cutoff*)
     let rec start_children child_index =
-      if child_index >= num_cores then [] else
+      if child_index >= cores || child_index >= n then [] else
       (*returns a sublist in the correct order *)
       let child_func () : 'a list = 
-        let start_index = (child_index * n) / num_cores in
-        let end_index = (((child_index+1) * n) / num_cores)-1 in (*inclusive*)
+        let start_index = (child_index * n) / cores in
+        let end_index = (((child_index+1) * n) / cores)-1 in (*inclusive*)
         let rec loop i =
           if i > end_index then [] else
           (f i)::(loop (i+1))
@@ -166,14 +169,16 @@ module Seq (Par : Future.S) (Arg : SEQ_ARGS) : S = struct
 
 
   let map f seq = 
+    if seq = [||] then [||] else
+    let n = Array.length seq in
+    let cores = if num_cores > n / 2 then n / 2 else num_cores in (*practical cutoff*)
     let rec start_children child_index =
-      if child_index >= num_cores then [] else
+      if child_index >= cores || child_index >= n then [] else
+      let start_index = (child_index * n) / cores in
+      let end_index = (((child_index+1) * n) / cores) in (*exclusive*)
+      let arr_len = end_index - start_index in
+      let child_arr = Array.sub seq start_index arr_len in
       let child_func () = 
-        let n = Array.length seq in
-        let start_index = (child_index * n) / num_cores in
-        let end_index = (((child_index+1) * n) / num_cores) in (*exclusive*)
-        let arr_len = end_index - start_index in
-        let child_arr = Array.sub seq start_index arr_len in
         (Array.map f child_arr)
       in
       (Par.future child_func ())::(start_children (child_index+1))
@@ -187,18 +192,17 @@ module Seq (Par : Future.S) (Arg : SEQ_ARGS) : S = struct
     append_futures futures_list
 
 
-  let map_reduce m r b seq = failwith "implement me"
-
-
   let reduce r b seq = 
+    if seq = [||] then b else
+    let n = Array.length seq in
+    let cores = if num_cores > n / 2 then n / 2 else num_cores in (*practical cutoff*)
     let rec start_children child_index =
-      if child_index >= num_cores then [] else
+      if child_index >= cores || child_index >= n then [] else
+      let start_index = (child_index * n) / cores in
+      let end_index = (((child_index+1) * n) / cores) in (*exclusive*)
+      let arr_len = end_index - start_index in
+      let child_arr = Array.sub seq start_index arr_len in
       let child_func () = 
-        let n = Array.length seq in
-        let start_index = (child_index * n) / num_cores in
-        let end_index = (((child_index+1) * n) / num_cores) in (*exclusive*)
-        let arr_len = end_index - start_index in
-        let child_arr = Array.sub seq start_index arr_len in
         let rec child_fold i =
           if i = arr_len -1 then Array.get child_arr i else
           r (Array.get child_arr i) (child_fold (i+1))
@@ -214,6 +218,11 @@ module Seq (Par : Future.S) (Arg : SEQ_ARGS) : S = struct
       | hd::tl -> r (Par.force hd) (reduce_futures tl)
     in
     reduce_futures futures_list
+
+
+  let map_reduce m r b seq = 
+    let mapped_arr = map m seq in
+    reduce r b mapped_arr
 
 
   let flatten seqseq = 
@@ -240,24 +249,121 @@ module Seq (Par : Future.S) (Arg : SEQ_ARGS) : S = struct
 
 
   let split seq x = 
+    if Array.length seq < x then failwith "split" else (
     let second_length = ((Array.length seq) - x) in
-    (Array.sub seq 0 x, Array.sub seq x second_length)
+    (Array.sub seq 0 x, Array.sub seq x second_length))
 
 
   (*******************************************************)
   (* Parallel Prefix Sum                                 *)
   (*******************************************************)
 
+  type 'a scan_message = Single of 'a | Arr of 'a array
+
   (* Here you will implement a version of the parallel prefix scan for a sequence 
    * [a0; a1; ...], the result of scan will be [f base a0; f (f base a0) a1; ...] *)
-  let scan (f: 'a -> 'a -> 'a) (base: 'a) (seq: 'a t) : 'a t =
-    failwith "implement me"
-        
+  let scan (f: 'a -> 'a -> 'a) (base: 'a) (seq: 'a t) : 'a t = 
+    if seq = [||] then [||] else
+    let n = Array.length seq in
+    let cores = if num_cores > n / 2 then n / 2 else num_cores in (*practical cutoff*)
+    let rec start_children child_index =
+      if child_index >= cores || child_index >= n then [] else (
+        let start_index = (child_index * n) / cores in
+        let end_index = (((child_index+1) * n) / cores) in (*exclusive*)
+        let arr_len = end_index - start_index in
+        let child_arr = Array.sub seq start_index arr_len in
+        let child_func (ch : ('a scan_message, 'a) Mpi.channel) () = 
+          (*upward phase*)
+          let rec child_scan i =
+            let new_val = f child_arr.(i-1) child_arr.(i) in
+            child_arr.(i) <- new_val;
+            if i < arr_len - 1 then child_scan (i+1)
+          in
+          if arr_len > 0 && child_index = 0 then child_arr.(0) <- f base child_arr.(0);
+          if arr_len > 1 then child_scan 1; (*first value is always unchanged for upward phase*)
+          (* print_string "s";
+          print_int child_index;
+          print_string "\n";
+          flush stdout; *)
+          Mpi.send ch (Single(child_arr.(arr_len - 1))); (*send subtree total*)
+          if (child_index <> 0) then (
+            let prev_subtrees_total = Mpi.receive ch in
+            (*downward phase*)
+            let add_prev_total elem = f prev_subtrees_total elem in
+            let result = Array.map add_prev_total child_arr in
+            (* print_string "send";
+            print_int child_index;
+            flush stdout; *)
+            Mpi.send ch (Arr(result))
+          ) 
+          else
+            (* print_string "\nsend";
+            print_int child_index;
+            flush stdout; *)
+            Mpi.send ch (Arr(child_arr))
+        in
+        (Mpi.spawn child_func ())::(start_children (child_index+1))
+      )
+    in
+    let channels = start_children 0 in
+    let rec collect_and_distribute_totals ls = 
+      let rec make_sub_totals_list l =
+        match l with 
+        | [] -> []
+        | ch::tl -> 
+          match Mpi.receive ch with
+          | Single total -> total::(make_sub_totals_list tl)
+          | Arr _ -> failwith "Impossible"
+      in
+      let sub_totals = make_sub_totals_list ls in
+      let (fst_sub_total,remaining_sub_totals) =
+        match sub_totals with
+        | [] -> failwith "Impossible"
+        | hd::tl -> (hd,tl)
+      in
+      let rec scan_sub_totals st_ls last_total =
+        match st_ls with
+        | [] -> []
+        | hd::tl -> 
+          let new_total = f last_total hd in
+          (new_total)::(scan_sub_totals tl new_total)
+      in
+      let complete_sub_totals = 
+        fst_sub_total::(scan_sub_totals remaining_sub_totals fst_sub_total) in
+      let rec distribute_totals ch_ls st_ls =
+        match ch_ls with 
+        | [] -> ()
+        | ch::tl -> 
+          match st_ls with 
+          | [] -> failwith "Impossible"
+          | st_hd::st_tl -> (
+            Mpi.send ch st_hd;
+            distribute_totals tl st_tl
+          )
+      in
+      let ch_ls_no_first = 
+        match channels with
+        | [] -> failwith "Impossible"
+        | hd::tl -> tl
+      in
+      distribute_totals ch_ls_no_first complete_sub_totals
+    in
+    collect_and_distribute_totals channels;
+    let rec concat_results ch_remaining = 
+      match ch_remaining with
+      | [] -> [||]
+      | hd::tl -> (
+        match Mpi.receive hd with 
+        | Single _ -> failwith "Impossible"
+        | Arr result -> 
+          Mpi.wait_die hd;
+          Array.append result (concat_results tl)
+      )
+    in
+    let final_result = concat_results channels in
+    (* print_string "\n\n";
+    print_int (Array.length final_result);
+    print_string "\n\n"; *)
+    final_result
+
 end
-
-
-
-
-
-
-
