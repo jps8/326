@@ -1,10 +1,9 @@
 
 open Util
 open Future
+module Mseq = Sequence.Seq(PFuture)(struct let use_mpi = true end)
 
 (* allows us to switch between ListSeq and our Seq module with ease *)
-(* currently set to ListSeq bc Seq hasn't been implemented *)
-module Mseq = Sequence.ListSeq
 type 'a mySeq =  'a Mseq.t
 
 type profile = {
@@ -162,8 +161,7 @@ let matchme (args : string array) : unit =
                               else None)
         | (Some lb, Some rb) -> (if name_match rb then Some rb
                                  else if name_match lb then Some lb
-                                 else raise 
-                                 (Failure "our matcher isn't working")) 
+                                 else None) 
         | (None, None) -> raise 
                           (Failure "why are we getting 2 Nones in reduce?!") 
     in
